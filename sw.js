@@ -1,4 +1,4 @@
-const CACHE = 'onetask-v2';
+const CACHE = 'onebuddy-v1';
 const ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', e => {

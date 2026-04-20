@@ -1,7 +1,7 @@
 {
-  "name": "OneTask",
-  "short_name": "OneTask",
-  "description": "One task at a time — focus app for ADHD brains",
+  "name": "OneBuddy",
+  "short_name": "OneBuddy",
+  "description": "One buddy, one task at a time — focus app for ADHD brains",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#0f0e17",
