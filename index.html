@@ -118,12 +118,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 8px;text-align:center;}
 .stat-box .sv{font-family:'Pixelify Sans',monospace;font-size:22px;color:var(--text);display:block;}
 .stat-box label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;display:block;}
-.task-item{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--dim);}
+.task-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--dim);}
 .task-item:last-child{border-bottom:none;}
 .task-item.current{color:var(--text);font-weight:600;}
 .t-dot{width:7px;height:7px;border-radius:2px;background:var(--border);flex-shrink:0;}
 .task-item.current .t-dot{background:var(--accent);}
-.t-del{margin-left:auto;background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;}
+.t-text{flex:1;cursor:pointer;line-height:1.4;min-width:0;word-break:break-word;}
+.t-text:active{opacity:0.7;}
+.t-focus{background:rgba(255,137,6,0.1);border:1px solid rgba(255,137,6,0.25);color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;padding:5px 9px;border-radius:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent;font-family:'DM Sans',sans-serif;flex-shrink:0;}
+.t-cur-label{font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;padding:0 4px;}
+.t-del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+.t-edit-input{flex:1;background:var(--surface2);border:1.5px solid var(--accent);border-radius:8px;padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;min-width:0;}
+#drawer-add-row{display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+#drawer-task-input{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;caret-color:var(--accent);transition:border-color 0.2s;}
+#drawer-task-input:focus{border-color:var(--accent);}
+#drawer-task-input::placeholder{color:var(--muted);}
+#drawer-add-btn{width:44px;height:44px;background:var(--accent);color:#1a0a00;border:none;border-radius:9px;font-size:20px;font-weight:700;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
 #feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);font-family:'Pixelify Sans',monospace;font-size:20px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 24px;pointer-events:none;opacity:0;z-index:500;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.6);transition:opacity 0.15s,transform 0.15s;max-width:82vw;}
 #feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
 #levelup{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;border-radius:100px;padding:10px 20px;font-size:13px;font-weight:700;letter-spacing:0.03em;box-shadow:0 8px 24px rgba(124,58,237,0.4);opacity:0;pointer-events:none;z-index:500;transition:opacity 0.3s,transform 0.3s;}
@@ -257,8 +267,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 </div>
 <div class="drawer" id="tasks-drawer">
   <div class="drawer-handle"></div>
-  <div class="drawer-title">All Tasks</div>
+  <div class="drawer-title" id="tasks-drawer-title">All Tasks</div>
   <div id="tasks-list"></div>
+  <div id="drawer-add-row">
+    <input id="drawer-task-input" type="text" placeholder="Add a task…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+    <button id="drawer-add-btn">+</button>
+  </div>
 </div>
 <div id="feedback"></div>
 <div id="levelup">🚀 Level Up!</div>
@@ -867,16 +881,33 @@ function renderTask(){
 }
 function renderTasksDrawer(){
   const list=document.getElementById('tasks-list');list.innerHTML='';
-  if(!S.tasks.length){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px 0;font-size:14px;">No tasks yet</div>';return;}
+  const title=document.getElementById('tasks-drawer-title');
+  title.textContent=S.tasks.length?`All Tasks · ${S.tasks.length}`:'All Tasks';
+  if(!S.tasks.length){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:28px 0;font-size:14px;">No tasks yet — add one below</div>';return;}
   S.tasks.forEach((t,i)=>{
-    const el=document.createElement('div');el.className='task-item'+(i===S.idx?' current':'');
-    el.innerHTML=`<span class="t-dot"></span><span style="flex:1">${esc(t)}</span><button class="t-del" data-i="${i}">✕</button>`;
+    const isCurrent=i===S.idx;
+    const el=document.createElement('div');
+    el.className='task-item'+(isCurrent?' current':'');
+    el.innerHTML=`<span class="t-dot"></span><span class="t-text" data-i="${i}">${esc(t)}</span>${isCurrent?'<span class="t-cur-label">now</span>':`<button class="t-focus" data-i="${i}">focus</button>`}<button class="t-del" data-i="${i}">✕</button>`;
     list.appendChild(el);
   });
   list.querySelectorAll('.t-del').forEach(b=>b.addEventListener('click',e=>{
     const i=parseInt(e.currentTarget.dataset.i);S.tasks.splice(i,1);
     if(S.idx>=S.tasks.length)S.idx=Math.max(0,S.tasks.length-1);
     save();render();renderTasksDrawer();
+  }));
+  list.querySelectorAll('.t-focus').forEach(b=>b.addEventListener('click',e=>{
+    S.idx=parseInt(e.currentTarget.dataset.i);
+    save();render();renderTasksDrawer();
+  }));
+  list.querySelectorAll('.t-text').forEach(span=>span.addEventListener('click',e=>{
+    const i=parseInt(e.currentTarget.dataset.i);
+    const inp=document.createElement('input');
+    inp.type='text';inp.value=S.tasks[i];inp.className='t-edit-input';
+    e.currentTarget.replaceWith(inp);inp.focus();inp.select();
+    const commit=()=>{const v=inp.value.trim();if(v)S.tasks[i]=v;save();render();renderTasksDrawer();};
+    inp.addEventListener('blur',commit);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit();}if(e.key==='Escape')renderTasksDrawer();});
   }));
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -984,6 +1015,14 @@ const menuDr=makeDrawer('btn-menu','menu-drawer','menu-overlay',()=>{
 });
 const tasksDr=makeDrawer(null,'tasks-drawer','tasks-overlay',renderTasksDrawer);
 document.getElementById('btn-open-tasks').addEventListener('click',()=>{menuDr.close();renderTasksDrawer();tasksDr.open();});
+function drawerAddTask(){
+  const inp=document.getElementById('drawer-task-input');
+  const val=inp.value.trim();if(!val)return;
+  S.tasks.push(val);S.chainTotal++;inp.value='';
+  save();render();renderTasksDrawer();
+}
+document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask);
+document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset XP, pet stats, and items? Tasks are kept.'))return;
   S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=80;S.unlocked=[];S.equipped=null;S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
@@ -1001,7 +1040,6 @@ document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
 document.getElementById('btn-add').addEventListener('click',addTask);
 document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
-document.querySelectorAll('.btn,#btn-menu,.menu-btn').forEach(b=>b.addEventListener('touchend',e=>e.preventDefault()));
 
 // ═══ INIT ════════════════════════════════════════════════════
 initOnboarding();
