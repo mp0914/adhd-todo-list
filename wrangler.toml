@@ -1,0 +1,12 @@
+name = "adhd-todo-list"
+compatibility_date = "2024-01-01"
+account_id = "ba00c09a92646bd233c79b3d49ba4406"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "onetask-db"
+database_id = "f68c9ad6-6602-49a0-8789-fd7fbf8d4e8d"
+
+[vars]
+JWT_SECRET = "change-me-in-dashboard"

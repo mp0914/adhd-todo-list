@@ -145,10 +145,27 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .anim-out-r{animation:slideOutR 0.24s ease forwards;}
 .anim-in-l{animation:slideInL 0.24s ease forwards;}
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:600;}
+#screen-auth{background:var(--bg);align-items:center;justify-content:flex-start;overflow-y:auto;}
+#auth-inner{width:100%;padding:52px 28px;padding-bottom:max(40px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;min-height:100%;}
+.auth-error{color:var(--accent2);font-size:13px;margin-bottom:16px;text-align:center;min-height:18px;}
+#auth-toggle{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;margin-top:14px;font-family:'DM Sans',sans-serif;text-decoration:underline;}
 </style>
 </head>
 <body>
-<div class="screen" id="screen-onboard">
+<div class="screen hidden" id="screen-auth">
+  <div id="auth-inner">
+    <div class="ob-title">OneTask</div>
+    <div class="ob-sub" id="auth-sub">Welcome back</div>
+    <div class="ob-label">Email</div>
+    <input class="ob-input" id="auth-email" type="email" placeholder="you@example.com" autocomplete="email"/>
+    <div class="ob-label">Password</div>
+    <input class="ob-input" id="auth-password" type="password" placeholder="········" autocomplete="current-password"/>
+    <div class="auth-error" id="auth-error"></div>
+    <button class="ob-btn" id="auth-submit">Log In</button>
+    <button id="auth-toggle">No account? Register</button>
+  </div>
+</div>
+<div class="screen hidden" id="screen-onboard">
   <div id="onboard-inner">
     <div class="ob-title">OneTask</div>
     <div class="ob-sub">one task at a time.<br>your companion is waiting.</div>
@@ -225,6 +242,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <div class="menu-label">Reset</div>
     <button class="menu-btn" id="btn-reset-stats">↺ &nbsp;Reset stats &amp; pet</button>
     <button class="menu-btn danger" id="btn-reset-all">✕ &nbsp;Clear everything</button>
+  </div>
+  <div class="menu-section">
+    <div class="menu-label">Account</div>
+    <button class="menu-btn danger" id="btn-logout">→ &nbsp;Log out</button>
   </div>
 </div>
 <div class="drawer" id="tasks-drawer">
@@ -643,34 +664,39 @@ const ITEMS=[
 ];
 
 // ═══ STATE ═══════════════════════════════════════════════════
-const LS={
-  get:(k,d)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}},
-  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
-};
+const TOKEN_KEY='ot_token';
+let authToken=localStorage.getItem(TOKEN_KEY);
 const today=new Date().toDateString();
-let S={
-  petType:LS.get('ot_petType',null),petName:LS.get('ot_petName',null),
-  tasks:LS.get('ot_tasks',[]),idx:LS.get('ot_idx',0),
-  xp:LS.get('ot_xp',0),dayStreak:LS.get('ot_dayStreak',0),lastDate:LS.get('ot_lastDate',''),
-  doneToday:LS.get('ot_doneToday',0),totalDone:LS.get('ot_totalDone',0),
-  chainDone:LS.get('ot_chainDone',0),chainTotal:LS.get('ot_chainTotal',0),
-  hunger:LS.get('ot_hunger',70),happy:LS.get('ot_happy',60),energy:LS.get('ot_energy',80),
-  unlocked:LS.get('ot_unlocked',[]),equipped:LS.get('ot_equipped',null),
-};
-if(S.lastDate&&S.lastDate!==today){
-  const diff=(new Date(today)-new Date(S.lastDate))/864e5;
-  S.dayStreak=diff<=1.5?S.dayStreak+1:0;
-  S.doneToday=0;S.chainDone=0;S.chainTotal=0;S.energy=Math.min(100,S.energy+30);
+let S={petType:null,petName:null,tasks:[],idx:0,xp:0,dayStreak:0,lastDate:'',
+  doneToday:0,totalDone:0,chainDone:0,chainTotal:0,hunger:70,happy:60,energy:80,
+  unlocked:[],equipped:null};
+function applyState(data){if(data)Object.assign(S,data);}
+function applyDayRollover(){
+  if(S.lastDate&&S.lastDate!==today){
+    const diff=(new Date(today)-new Date(S.lastDate))/864e5;
+    S.dayStreak=diff<=1.5?S.dayStreak+1:0;
+    S.doneToday=0;S.chainDone=0;S.chainTotal=0;S.energy=Math.min(100,S.energy+30);
+  }
+  S.lastDate=today;
 }
-S.lastDate=today;
+let _saveTimer;
 function save(){
-  const m={ot_petType:S.petType,ot_petName:S.petName,ot_tasks:S.tasks,ot_idx:S.idx,
-    ot_xp:S.xp,ot_dayStreak:S.dayStreak,ot_lastDate:S.lastDate,
-    ot_doneToday:S.doneToday,ot_totalDone:S.totalDone,
-    ot_chainDone:S.chainDone,ot_chainTotal:S.chainTotal,
-    ot_hunger:S.hunger,ot_happy:S.happy,ot_energy:S.energy,
-    ot_unlocked:S.unlocked,ot_equipped:S.equipped};
-  Object.entries(m).forEach(([k,v])=>LS.set(k,v));
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    if(!authToken)return;
+    fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},body:JSON.stringify(S)}).catch(()=>{});
+  },800);
+}
+async function apiAuth(mode,email,password){
+  const r=await fetch('/api/auth/'+mode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+  const data=await r.json();
+  if(!r.ok)throw new Error(data.error||'Request failed');
+  return data.token;
+}
+async function loadState(){
+  const r=await fetch('/api/state',{headers:{'Authorization':'Bearer '+authToken}});
+  if(r.status===401){authToken=null;localStorage.removeItem(TOKEN_KEY);return null;}
+  return r.json();
 }
 function getLevel(xp){return Math.floor(xp/100)+1;}
 function xpForLevel(lvl){return(lvl-1)*100;}
@@ -697,6 +723,44 @@ function triggerPetAnim(type){
   void $wrap.offsetWidth;
   $wrap.classList.add(type);
   setTimeout(()=>{$wrap.classList.remove(type);$wrap.classList.add('idle');},(type==='celebrate'?700:500));
+}
+
+// ═══ AUTH ════════════════════════════════════════════════════
+function initAuth(){
+  let isLogin=true;
+  const sub=document.getElementById('auth-sub'),
+        btn=document.getElementById('auth-submit'),
+        tog=document.getElementById('auth-toggle'),
+        err=document.getElementById('auth-error');
+  tog.addEventListener('click',()=>{
+    isLogin=!isLogin;
+    sub.textContent=isLogin?'Welcome back':'Create your account';
+    btn.textContent=isLogin?'Log In':'Register';
+    tog.textContent=isLogin?'No account? Register':'Already have an account? Log in';
+    err.textContent='';
+  });
+  async function submit(){
+    const email=document.getElementById('auth-email').value.trim();
+    const password=document.getElementById('auth-password').value;
+    err.textContent='';
+    if(!email||!password){err.textContent='Please fill in all fields.';return;}
+    btn.disabled=true;btn.textContent=isLogin?'Logging in…':'Creating account…';
+    try{
+      const token=await apiAuth(isLogin?'login':'register',email,password);
+      authToken=token;localStorage.setItem(TOKEN_KEY,token);
+      if(!isLogin){showOnboard();}
+      else{
+        const state=await loadState();
+        if(state){applyState(state);applyDayRollover();}
+        if(S.petType&&S.petName)showMain();else showOnboard();
+      }
+    }catch(e){
+      err.textContent=e.message;
+      btn.disabled=false;btn.textContent=isLogin?'Log In':'Register';
+    }
+  }
+  btn.addEventListener('click',submit);
+  document.getElementById('auth-password').addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
 }
 
 // ═══ ONBOARDING ══════════════════════════════════════════════
@@ -727,7 +791,18 @@ function startJourney(){
 }
 
 // ═══ SCREENS ═════════════════════════════════════════════════
+function showAuthScreen(){
+  document.getElementById('screen-auth').classList.remove('hidden');
+  document.getElementById('screen-onboard').classList.add('hidden');
+  document.getElementById('screen-main').classList.add('hidden');
+}
+function showOnboard(){
+  document.getElementById('screen-auth').classList.add('hidden');
+  document.getElementById('screen-onboard').classList.remove('hidden');
+  document.getElementById('screen-main').classList.add('hidden');
+}
 function showMain(){
+  document.getElementById('screen-auth').classList.add('hidden');
   document.getElementById('screen-onboard').classList.add('hidden');
   document.getElementById('screen-main').classList.remove('hidden');
   renderPet();render();$wrap.classList.add('idle');
@@ -906,7 +981,8 @@ document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset XP, pet stats, and items? Tasks are kept.'))return;
   S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=80;S.unlocked=[];S.equipped=null;S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
 });
-document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;localStorage.clear();location.reload();});
+document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;const t=localStorage.getItem(TOKEN_KEY);localStorage.clear();if(t)localStorage.setItem(TOKEN_KEY,t);location.reload();});
+document.getElementById('btn-logout').addEventListener('click',()=>{if(!confirm('Log out?'))return;localStorage.removeItem(TOKEN_KEY);location.reload();});
 
 // ═══ SWIPE & EVENTS ══════════════════════════════════════════
 let tx=0,ty2=0,tA=false;
@@ -922,7 +998,16 @@ document.querySelectorAll('.btn,#btn-menu,.menu-btn,.ob-btn').forEach(b=>b.addEv
 
 // ═══ INIT ════════════════════════════════════════════════════
 initOnboarding();
-if(S.petType&&S.petName)showMain();
+initAuth();
+(async()=>{
+  if(authToken){
+    const state=await loadState();
+    if(state){applyState(state);applyDayRollover();}
+    if(S.petType&&S.petName)showMain();else showOnboard();
+  }else{
+    showAuthScreen();
+  }
+})();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 </script>
 </body>
