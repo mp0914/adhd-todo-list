@@ -670,18 +670,65 @@ function getItemSVG(itemId) {
       <text x="54" y="8" font-size="11">⭐</text>
     </svg>`,
     rainbow:'',
+    sword:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <rect x="113" y="28" width="5" height="52" rx="2.5" fill="#b0bec5"/>
+      <polygon points="115.5,12 110,28 121,28" fill="#eceff1"/>
+      <rect x="104" y="76" width="23" height="5" rx="2" fill="#78909c"/>
+      <rect x="113.5" y="80" width="4" height="22" rx="2" fill="#6d4c41"/>
+      <circle cx="115.5" cy="102" r="3" fill="#ffd600"/>
+    </svg>`,
+    wings:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <path d="M70,90 Q38,60 8,72 Q16,100 50,96 Q62,94 70,90Z" fill="white" opacity="0.82"/>
+      <path d="M70,90 Q102,60 132,72 Q124,100 90,96 Q78,94 70,90Z" fill="white" opacity="0.82"/>
+      <path d="M70,90 Q42,66 18,78" stroke="#e0e0e0" stroke-width="1.5" fill="none"/>
+      <path d="M70,90 Q98,66 122,78" stroke="#e0e0e0" stroke-width="1.5" fill="none"/>
+      <path d="M70,90 Q34,70 12,84" stroke="#e0e0e0" stroke-width="1.2" fill="none"/>
+      <path d="M70,90 Q106,70 128,84" stroke="#e0e0e0" stroke-width="1.2" fill="none"/>
+    </svg>`,
+    halo:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <ellipse cx="70" cy="12" rx="30" ry="7" stroke="#ffd600" stroke-width="4.5" fill="rgba(255,214,0,0.12)"/>
+      <ellipse cx="70" cy="12" rx="30" ry="7" stroke="#fff9c4" stroke-width="1.5" fill="none" opacity="0.7"/>
+    </svg>`,
+    aura:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <circle cx="70" cy="70" r="66" stroke="#b388ff" stroke-width="2.5" fill="rgba(179,136,255,0.06)" stroke-dasharray="5 4"/>
+      <circle cx="70" cy="70" r="57" stroke="#ff8906" stroke-width="1.5" fill="none" opacity="0.35" stroke-dasharray="8 7"/>
+      <text x="6" y="18" font-size="13" opacity="0.85">🌟</text>
+      <text x="112" y="18" font-size="13" opacity="0.85">🌟</text>
+      <text x="6" y="132" font-size="13" opacity="0.85">🌟</text>
+      <text x="112" y="132" font-size="13" opacity="0.85">🌟</text>
+    </svg>`,
+    mask:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <path d="M26,56 L50,49 Q70,44 90,49 L114,56 Q116,74 102,76 L38,76 Q24,74 26,56Z" fill="#1a237e" opacity="0.88"/>
+      <ellipse cx="47" cy="62" rx="13" ry="9" fill="none" stroke="#5c6bc0" stroke-width="2.5"/>
+      <ellipse cx="93" cy="62" rx="13" ry="9" fill="none" stroke="#5c6bc0" stroke-width="2.5"/>
+      <line x1="60" y1="62" x2="80" y2="62" stroke="#3f51b5" stroke-width="2"/>
+    </svg>`,
+    gem:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <polygon points="14,52 22,42 30,52 22,64" fill="#e040fb" opacity="0.92"/>
+      <polygon points="16,54 22,48 28,54" fill="white" opacity="0.3"/>
+      <polygon points="110,52 118,42 126,52 118,64" fill="#40c4ff" opacity="0.92"/>
+      <polygon points="112,54 118,48 124,54" fill="white" opacity="0.3"/>
+      <polygon points="62,4 70,0 78,4 70,14" fill="#69f0ae" opacity="0.92"/>
+      <polygon points="64,5 70,2 76,5" fill="white" opacity="0.3"/>
+    </svg>`,
   };
   return o[itemId]||'';
 }
 
 // ═══ ITEMS ═══════════════════════════════════════════════════
 const ITEMS=[
-  {id:'hat',     name:'Tiny Hat',   emoji:'🎩',xp:50},
-  {id:'glasses', name:'Sunglasses', emoji:'😎',xp:150},
-  {id:'cape',    name:'Cape',       emoji:'🦸',xp:300},
-  {id:'crown',   name:'Crown',      emoji:'👑',xp:500},
-  {id:'sparkle', name:'Sparkle',    emoji:'✨',xp:750},
-  {id:'rainbow', name:'Rainbow',    emoji:'🌈',xp:1000},
+  {id:'hat',     name:'Tiny Hat',   emoji:'🎩',xp:75},
+  {id:'glasses', name:'Sunglasses', emoji:'😎',xp:225},
+  {id:'cape',    name:'Cape',       emoji:'🦸',xp:450},
+  {id:'crown',   name:'Crown',      emoji:'👑',xp:750},
+  {id:'sparkle', name:'Sparkle',    emoji:'✨',xp:1125},
+  {id:'rainbow', name:'Rainbow Bg', emoji:'🌈',xp:1500},
+  {id:'sword',   name:'Sword',      emoji:'🗡️', xp:2000},
+  {id:'wings',   name:'Wings',      emoji:'🪽', xp:2750},
+  {id:'halo',    name:'Halo',       emoji:'😇', xp:3500},
+  {id:'aura',    name:'Aura',       emoji:'🌟', xp:4500},
+  {id:'mask',    name:'Hero Mask',  emoji:'🎭', xp:5500},
+  {id:'gem',     name:'Gems',       emoji:'💎', xp:7000},
 ];
 
 // ═══ STATE ═══════════════════════════════════════════════════
@@ -690,8 +737,13 @@ let authToken=localStorage.getItem(TOKEN_KEY);
 const today=new Date().toDateString();
 let S={petType:null,petName:null,tasks:[],idx:0,xp:0,dayStreak:0,lastDate:'',
   doneToday:0,totalDone:0,chainDone:0,chainTotal:0,hunger:70,happy:60,energy:80,
-  unlocked:[],equipped:null};
-function applyState(data){if(data)Object.assign(S,data);}
+  unlocked:[],equipped:[]};
+function applyState(data){
+  if(!data)return;
+  Object.assign(S,data);
+  // migrate old single-string equipped to array
+  if(typeof S.equipped==='string'||S.equipped===null)S.equipped=S.equipped?[S.equipped]:[];
+}
 function applyDayRollover(){
   if(S.lastDate&&S.lastDate!==today){
     const diff=(new Date(today)-new Date(S.lastDate))/864e5;
@@ -723,6 +775,24 @@ function getLevel(xp){return Math.floor(xp/100)+1;}
 function xpForLevel(lvl){return(lvl-1)*100;}
 function nextUnlock(){return ITEMS.find(it=>!S.unlocked.includes(it.id));}
 
+// ═══ EVOLUTION ════════════════════════════════════════════════
+function getEvolutionStage(xp){return xp>=3000?3:xp>=1000?2:1;}
+function getEvolutionOverlay(stage){
+  if(stage===2)return`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+    <circle cx="70" cy="70" r="67" stroke="#ffd700" stroke-width="2" fill="none" opacity="0.55" stroke-dasharray="6 5"/>
+    <text x="8" y="20" font-size="12" opacity="0.8">⭐</text><text x="110" y="22" font-size="11" opacity="0.8">⭐</text>
+    <text x="10" y="130" font-size="11" opacity="0.7">✨</text><text x="111" y="128" font-size="12" opacity="0.8">⭐</text>
+  </svg>`;
+  if(stage===3)return`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+    <circle cx="70" cy="70" r="67" stroke="#b388ff" stroke-width="2.5" fill="none" opacity="0.7" stroke-dasharray="5 4"/>
+    <circle cx="70" cy="70" r="59" stroke="#ff8906" stroke-width="1.5" fill="none" opacity="0.35" stroke-dasharray="8 7"/>
+    <text x="5" y="20" font-size="14" opacity="0.9">⚡</text><text x="112" y="20" font-size="14" opacity="0.9">⚡</text>
+    <text x="8" y="132" font-size="14" opacity="0.9">💫</text><text x="110" y="132" font-size="14" opacity="0.9">💫</text>
+    <text x="57" y="10" font-size="13" opacity="0.9">🌟</text>
+  </svg>`;
+  return'';
+}
+
 // ═══ PET RENDER ══════════════════════════════════════════════
 const $wrap=document.getElementById('pet-svg-wrap');
 const $petBg=document.getElementById('pet-bg');
@@ -735,9 +805,15 @@ function getMood(){
 function renderPet(mood){
   if(!S.petType)return;
   const m=mood||getMood();
+  const stage=getEvolutionStage(S.xp);
   $wrap.innerHTML=PETS[S.petType].getSVG(m);
-  if(S.equipped&&S.equipped!=='rainbow')$wrap.innerHTML+=getItemSVG(S.equipped);
-  $petBg.classList.toggle('rainbow-bg',S.equipped==='rainbow');
+  const eq=Array.isArray(S.equipped)?S.equipped:[];
+  eq.filter(id=>id!=='rainbow').forEach(id=>{$wrap.innerHTML+=getItemSVG(id);});
+  $wrap.innerHTML+=getEvolutionOverlay(stage);
+  $wrap.style.filter=stage===3
+    ?'drop-shadow(0 0 10px rgba(179,136,255,0.85)) drop-shadow(0 0 5px rgba(255,137,6,0.4))'
+    :stage===2?'drop-shadow(0 0 8px rgba(255,215,0,0.75))':'';
+  $petBg.classList.toggle('rainbow-bg',eq.includes('rainbow'));
 }
 function triggerPetAnim(type){
   $wrap.classList.remove('idle','bounce','celebrate');
@@ -852,12 +928,19 @@ function setBar(id,v){
 }
 function renderItems(){
   const row=document.getElementById('items-row');row.innerHTML='';
+  const eq=Array.isArray(S.equipped)?S.equipped:[];
   ITEMS.forEach(item=>{
-    const ul=S.unlocked.includes(item.id),eq=S.equipped===item.id;
+    const ul=S.unlocked.includes(item.id),isEq=eq.includes(item.id);
     const chip=document.createElement('div');
-    chip.className='item-chip'+(eq?' equipped':'')+(ul?'':' locked');
-    chip.textContent=ul?`${item.emoji} ${item.name}${eq?' ✓':''}`:`${item.emoji} ${item.name} · ${item.xp}xp`;
-    if(ul)chip.addEventListener('click',()=>{S.equipped=eq?null:item.id;save();renderItems();renderPet(getMood());});
+    chip.className='item-chip'+(isEq?' equipped':'')+(ul?'':' locked');
+    chip.textContent=ul?`${item.emoji} ${item.name}${isEq?' ✓':''}`:`${item.emoji} ${item.name} · ${item.xp}xp`;
+    if(ul)chip.addEventListener('click',()=>{
+      const cur=Array.isArray(S.equipped)?[...S.equipped]:[];
+      if(isEq){S.equipped=cur.filter(id=>id!==item.id);}
+      else if(cur.length<3){S.equipped=[...cur,item.id];}
+      else{showFeedback('Max 3 items equipped!');return;}
+      save();renderItems();renderPet(getMood());
+    });
     row.appendChild(chip);
   });
 }
@@ -932,6 +1015,14 @@ function completeTask(){
   else showFeedback(gained);
   checkUnlocks(prevXP);
   if(getLevel(S.xp)>prevLvl)showLevelUp(getLevel(S.xp));
+  const prevStage=getEvolutionStage(prevXP),newStage=getEvolutionStage(S.xp);
+  if(newStage>prevStage){
+    const labels=['','','✨ Evolved!','⚡ Legendary!'];
+    const el=document.getElementById('levelup');
+    el.textContent=labels[newStage]+' '+S.petName;
+    el.style.background=newStage===3?'linear-gradient(135deg,#7c3aed,#ff8906)':'linear-gradient(135deg,#f59e0b,#fbbf24)';
+    el.classList.add('show');setTimeout(()=>{el.classList.remove('show');el.style.background='';},3000);
+  }
   S.tasks.splice(S.idx,1);if(S.idx>=S.tasks.length)S.idx=0;
   save();triggerPetAnim('celebrate');animTransition('done',render);maybeShowTip();
 }
@@ -1025,7 +1116,7 @@ document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset XP, pet stats, and items? Tasks are kept.'))return;
-  S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=80;S.unlocked=[];S.equipped=null;S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
+  S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=80;S.unlocked=[];S.equipped=[];S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
 });
 document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;const t=localStorage.getItem(TOKEN_KEY);localStorage.clear();if(t)localStorage.setItem(TOKEN_KEY,t);location.reload();});
 document.getElementById('btn-logout').addEventListener('click',()=>{if(!confirm('Log out?'))return;localStorage.removeItem(TOKEN_KEY);location.reload();});
