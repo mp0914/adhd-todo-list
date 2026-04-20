@@ -736,7 +736,7 @@ const TOKEN_KEY='ot_token';
 let authToken=localStorage.getItem(TOKEN_KEY);
 const today=new Date().toDateString();
 let S={petType:null,petName:null,tasks:[],idx:0,xp:0,dayStreak:0,lastDate:'',
-  doneToday:0,totalDone:0,chainDone:0,chainTotal:0,hunger:70,happy:60,energy:80,
+  doneToday:0,totalDone:0,chainDone:0,chainTotal:0,hunger:70,happy:60,energy:0,
   unlocked:[],equipped:[]};
 function applyState(data){
   if(!data)return;
@@ -748,7 +748,7 @@ function applyDayRollover(){
   if(S.lastDate&&S.lastDate!==today){
     const diff=(new Date(today)-new Date(S.lastDate))/864e5;
     S.dayStreak=diff<=1.5?S.dayStreak+1:0;
-    S.doneToday=0;S.chainDone=0;S.chainTotal=0;S.energy=Math.min(100,S.energy+30);
+    S.doneToday=0;S.chainDone=0;S.chainTotal=0;S.energy=0;
   }
   S.lastDate=today;
 }
@@ -797,10 +797,9 @@ function getEvolutionOverlay(stage){
 const $wrap=document.getElementById('pet-svg-wrap');
 const $petBg=document.getElementById('pet-bg');
 function getMood(){
-  if(S.energy<20)return 'sleepy';
   if(S.doneToday>=5)return 'excited';
-  if(S.hunger<25||S.happy<25)return 'neutral';
-  if(S.happy>65&&S.energy>40)return 'happy';
+  if(S.hunger<25)return 'neutral';
+  if(S.happy>65)return 'happy';
   return 'neutral';
 }
 function renderPet(mood){
@@ -1010,7 +1009,9 @@ function completeTask(){
   if(S.dayStreak>0)gained+=Math.min(S.dayStreak*2,20);
   if(S.doneToday>0&&(S.doneToday+1)%5===0)gained+=25;
   S.xp+=gained;S.doneToday++;S.totalDone++;S.chainDone++;
-  S.hunger=Math.min(100,S.hunger+15);S.happy=Math.min(100,S.happy+10);S.energy=Math.max(0,S.energy-8);
+  S.hunger=Math.min(100,S.hunger+15);S.happy=Math.min(100,S.happy+10);
+  S.energy=Math.min(100,S.energy+10);
+  if(S.energy>=100){S.energy=0;S.xp+=30;showFeedback('⚡ Energy Surge! +30 XP!');}
   const isFullChain=S.chainDone>=S.chainTotal&&S.chainTotal>0;
   if(isFullChain){S.xp+=50;S.happy=Math.min(100,S.happy+20);launchConfetti();showFeedback('⛓ Chain complete! +50 xp!');}
   else showFeedback(gained);
@@ -1031,7 +1032,6 @@ function skipTask(){
   if(S.tasks.length<2)return;
   const t=S.tasks.splice(S.idx,1)[0];S.tasks.push(t);
   if(S.idx>=S.tasks.length)S.idx=0;
-  S.energy=Math.max(0,S.energy-3);
   save();animTransition('skip',render);
 }
 function checkUnlocks(prevXP){
@@ -1119,7 +1119,7 @@ document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset XP, pet stats, and items? Tasks are kept.'))return;
-  S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=80;S.unlocked=[];S.equipped=[];S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
+  S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=0;S.unlocked=[];S.equipped=[];S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
 });
 document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;const t=localStorage.getItem(TOKEN_KEY);localStorage.clear();if(t)localStorage.setItem(TOKEN_KEY,t);location.reload();});
 document.getElementById('btn-logout').addEventListener('click',()=>{if(!confirm('Log out?'))return;localStorage.removeItem(TOKEN_KEY);location.reload();});
