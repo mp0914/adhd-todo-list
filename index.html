@@ -797,9 +797,10 @@ function getEvolutionOverlay(stage){
 const $wrap=document.getElementById('pet-svg-wrap');
 const $petBg=document.getElementById('pet-bg');
 function getMood(){
+  if(S.energy<20)return 'sleepy';
   if(S.doneToday>=5)return 'excited';
-  if(S.hunger<25)return 'neutral';
-  if(S.happy>65)return 'happy';
+  if(S.hunger<25||S.happy<25)return 'neutral';
+  if(S.happy>65&&S.energy>40)return 'happy';
   return 'neutral';
 }
 function renderPet(mood){
@@ -1009,7 +1010,7 @@ function completeTask(){
   if(S.dayStreak>0)gained+=Math.min(S.dayStreak*2,20);
   if(S.doneToday>0&&(S.doneToday+1)%5===0)gained+=25;
   S.xp+=gained;S.doneToday++;S.totalDone++;S.chainDone++;
-  S.hunger=Math.min(100,S.hunger+15);S.happy=Math.min(100,S.happy+10);
+  S.hunger=Math.min(100,S.hunger+15);S.happy=Math.min(100,S.happy+10);S.energy=Math.max(0,S.energy-8);
   const isFullChain=S.chainDone>=S.chainTotal&&S.chainTotal>0;
   if(isFullChain){S.xp+=50;S.happy=Math.min(100,S.happy+20);launchConfetti();showFeedback('⛓ Chain complete! +50 xp!');}
   else showFeedback(gained);
@@ -1029,7 +1030,9 @@ function completeTask(){
 function skipTask(){
   if(S.tasks.length<2)return;
   const t=S.tasks.splice(S.idx,1)[0];S.tasks.push(t);
-  if(S.idx>=S.tasks.length)S.idx=0;save();animTransition('skip',render);
+  if(S.idx>=S.tasks.length)S.idx=0;
+  S.energy=Math.max(0,S.energy-3);
+  save();animTransition('skip',render);
 }
 function checkUnlocks(prevXP){
   ITEMS.forEach(item=>{
