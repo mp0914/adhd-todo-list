@@ -160,6 +160,21 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #auth-inner{width:100%;padding:52px 28px;padding-bottom:max(40px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;min-height:100%;}
 .auth-error{color:var(--accent2);font-size:13px;margin-bottom:16px;text-align:center;min-height:18px;}
 #auth-toggle{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;margin-top:14px;font-family:'DM Sans',sans-serif;text-decoration:underline;}
+.ps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;}
+.ps-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:8px 4px 8px;cursor:pointer;transition:border-color 0.18s,background 0.18s;-webkit-tap-highlight-color:transparent;overflow:hidden;}
+.ps-card:active{transform:scale(0.93);}
+.ps-card.active{border-color:var(--accent);background:rgba(255,137,6,0.1);}
+.ps-card svg{width:44px;height:44px;}
+.ps-name{font-size:9px;color:var(--dim);font-weight:600;letter-spacing:0.04em;text-align:center;text-transform:uppercase;line-height:1.3;}
+.ps-level{font-size:8px;color:var(--purple);font-weight:700;}
+.ps-adopt{font-size:9px;color:var(--accent);font-weight:700;}
+#adopt-row{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+#adopt-row label{font-size:13px;color:var(--dim);display:block;margin-bottom:10px;}
+#adopt-input-row{display:flex;gap:8px;}
+#adopt-input{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;caret-color:var(--accent);transition:border-color 0.2s;}
+#adopt-input:focus{border-color:var(--accent);}
+#adopt-input::placeholder{color:var(--muted);}
+#adopt-btn{width:80px;height:44px;background:var(--accent);color:#1a0a00;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 </style>
 </head>
 <body>
@@ -230,6 +245,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     </div>
   </div>
 </div>
+<div class="overlay" id="pets-overlay"></div>
+<div class="drawer" id="pets-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">Your Pets</div>
+  <div class="ps-grid" id="ps-grid"></div>
+  <div id="adopt-row" style="display:none">
+    <label id="adopt-label">Name your new companion!</label>
+    <div id="adopt-input-row">
+      <input id="adopt-input" type="text" placeholder="Give them a name…" maxlength="16" autocomplete="off"/>
+      <button id="adopt-btn">Adopt!</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="menu-overlay"></div>
 <div class="overlay" id="tasks-overlay"></div>
 <div class="drawer" id="menu-drawer">
@@ -250,6 +278,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <div class="stat-box"><span class="sv" id="ms-streak">0</span><label>day streak</label></div>
       <div class="stat-box"><span class="sv" id="ms-total">0</span><label>all time</label></div>
     </div>
+  </div>
+  <div class="menu-section">
+    <div class="menu-label">My Pets</div>
+    <button class="menu-btn" id="btn-open-pets">🐾 &nbsp;Switch or adopt pets</button>
   </div>
   <div class="menu-section">
     <div class="menu-label">Tasks</div>
@@ -711,44 +743,137 @@ function getItemSVG(itemId) {
       <polygon points="62,4 70,0 78,4 70,14" fill="#69f0ae" opacity="0.92"/>
       <polygon points="64,5 70,2 76,5" fill="white" opacity="0.3"/>
     </svg>`,
+    bone:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <rect x="96" y="110" width="28" height="9" rx="4" fill="#f5f0e8"/>
+      <circle cx="95" cy="114.5" r="7" fill="#f5f0e8"/><circle cx="125" cy="114.5" r="7" fill="#f5f0e8"/>
+      <circle cx="95" cy="108" r="5" fill="#f5f0e8"/><circle cx="125" cy="108" r="5" fill="#f5f0e8"/>
+      <circle cx="95" cy="121" r="5" fill="#f5f0e8"/><circle cx="125" cy="121" r="5" fill="#f5f0e8"/>
+    </svg>`,
+    yarn:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <circle cx="112" cy="118" r="16" fill="#e040fb" opacity="0.88"/>
+      <path d="M98,106 Q112,102 126,106" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+      <path d="M96,113 Q112,108 128,113" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+      <path d="M97,120 Q112,115 127,120" stroke="white" stroke-width="2" fill="none" opacity="0.5"/>
+      <line x1="112" y1="102" x2="118" y2="88" stroke="#ce93d8" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`,
+    flame:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <ellipse cx="58" cy="102" rx="8" ry="14" fill="#ff6d00" opacity="0.85"/>
+      <ellipse cx="70" cy="106" rx="10" ry="18" fill="#ff6d00" opacity="0.9"/>
+      <ellipse cx="82" cy="102" rx="8" ry="14" fill="#ff6d00" opacity="0.85"/>
+      <ellipse cx="70" cy="104" rx="7" ry="13" fill="#ffea00" opacity="0.7"/>
+      <ellipse cx="70" cy="107" rx="4" ry="8" fill="white" opacity="0.3"/>
+    </svg>`,
+    laser:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <line x1="44" y1="62" x2="2" y2="80" stroke="#f44336" stroke-width="2.5" opacity="0.9" stroke-linecap="round"/>
+      <line x1="96" y1="62" x2="138" y2="80" stroke="#f44336" stroke-width="2.5" opacity="0.9" stroke-linecap="round"/>
+      <circle cx="2" cy="80" r="4" fill="#f44336" opacity="0.85"/>
+      <circle cx="138" cy="80" r="4" fill="#f44336" opacity="0.85"/>
+      <circle cx="44" cy="62" r="3" fill="#ff8a80" opacity="0.7"/>
+      <circle cx="96" cy="62" r="3" fill="#ff8a80" opacity="0.7"/>
+    </svg>`,
+    wand:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <line x1="110" y1="28" x2="128" y2="118" stroke="#9c27b0" stroke-width="5" stroke-linecap="round"/>
+      <line x1="110" y1="28" x2="128" y2="118" stroke="#ce93d8" stroke-width="2" stroke-linecap="round"/>
+      <polygon points="110,18 106,32 114,32" fill="#ffd700"/>
+      <circle cx="110" cy="18" r="6" fill="#ffd700" opacity="0.9"/>
+      <text x="88" y="22" font-size="11" opacity="0.85">✨</text>
+      <text x="118" y="46" font-size="9" opacity="0.7">⭐</text>
+    </svg>`,
+    leafcrown:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <ellipse cx="50" cy="22" rx="12" ry="7" fill="#4caf50" transform="rotate(-30 50 22)"/>
+      <ellipse cx="70" cy="14" rx="13" ry="8" fill="#66bb6a"/>
+      <ellipse cx="90" cy="22" rx="12" ry="7" fill="#4caf50" transform="rotate(30 90 22)"/>
+      <ellipse cx="35" cy="30" rx="10" ry="6" fill="#388e3c" transform="rotate(-50 35 30)"/>
+      <ellipse cx="105" cy="30" rx="10" ry="6" fill="#388e3c" transform="rotate(50 105 30)"/>
+      <ellipse cx="70" cy="12" rx="8" ry="5" fill="#81c784"/>
+    </svg>`,
+    honey:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <rect x="96" y="106" width="28" height="26" rx="6" fill="#f9a825"/>
+      <rect x="96" y="100" width="28" height="10" rx="4" fill="#f57f17"/>
+      <rect x="102" y="96" width="16" height="6" rx="3" fill="#e65100"/>
+      <ellipse cx="110" cy="108" rx="6" ry="4" fill="#fff9c4" opacity="0.5"/>
+      <path d="M104,118 Q110,124 116,118" stroke="#e65100" stroke-width="1.5" fill="none"/>
+      <text x="100" y="99" font-size="10" opacity="0.8">🐝</text>
+    </svg>`,
+    bamboo:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <rect x="10" y="40" width="10" height="96" rx="5" fill="#558b2f"/>
+      <rect x="10" y="65" width="10" height="4" fill="#33691e"/>
+      <rect x="10" y="90" width="10" height="4" fill="#33691e"/>
+      <rect x="10" y="115" width="10" height="4" fill="#33691e"/>
+      <rect x="24" y="54" width="9" height="82" rx="4.5" fill="#689f38"/>
+      <rect x="24" y="76" width="9" height="4" fill="#33691e"/>
+      <rect x="24" y="100" width="9" height="4" fill="#33691e"/>
+      <ellipse cx="10" cy="54" rx="12" ry="5" fill="#8bc34a" transform="rotate(-20 10 54)"/>
+      <ellipse cx="24" cy="68" rx="11" ry="4.5" fill="#8bc34a" transform="rotate(20 24 68)"/>
+    </svg>`,
   };
   return o[itemId]||'';
 }
 
 // ═══ ITEMS ═══════════════════════════════════════════════════
 const ITEMS=[
-  {id:'hat',     name:'Tiny Hat',   emoji:'🎩',xp:75},
-  {id:'glasses', name:'Sunglasses', emoji:'😎',xp:225},
-  {id:'cape',    name:'Cape',       emoji:'🦸',xp:450},
-  {id:'crown',   name:'Crown',      emoji:'👑',xp:750},
-  {id:'sparkle', name:'Sparkle',    emoji:'✨',xp:1125},
-  {id:'rainbow', name:'Rainbow Bg', emoji:'🌈',xp:1500},
-  {id:'sword',   name:'Sword',      emoji:'🗡️', xp:2000},
-  {id:'wings',   name:'Wings',      emoji:'🪽', xp:2750},
-  {id:'halo',    name:'Halo',       emoji:'😇', xp:3500},
-  {id:'aura',    name:'Aura',       emoji:'🌟', xp:4500},
-  {id:'mask',    name:'Hero Mask',  emoji:'🎭', xp:5500},
-  {id:'gem',     name:'Gems',       emoji:'💎', xp:7000},
+  {id:'hat',       name:'Tiny Hat',     emoji:'🎩',xp:75},
+  {id:'glasses',   name:'Sunglasses',   emoji:'😎',xp:225},
+  {id:'cape',      name:'Cape',         emoji:'🦸',xp:450},
+  {id:'bone',      name:'Chew Bone',    emoji:'🦴',xp:600,petOnly:'dog'},
+  {id:'yarn',      name:'Yarn Ball',    emoji:'🧶',xp:600,petOnly:'cat'},
+  {id:'flame',     name:'Dragon Flame', emoji:'🔥',xp:600,petOnly:'dragon'},
+  {id:'laser',     name:'Laser Eyes',   emoji:'🔫',xp:600,petOnly:'alien'},
+  {id:'wand',      name:'Magic Wand',   emoji:'🪄',xp:600,petOnly:'unicorn'},
+  {id:'leafcrown', name:'Leaf Crown',   emoji:'🍃',xp:600,petOnly:'gecko'},
+  {id:'honey',     name:'Honey Pot',    emoji:'🍯',xp:600,petOnly:'bear'},
+  {id:'bamboo',    name:'Bamboo',       emoji:'🎋',xp:600,petOnly:'redpanda'},
+  {id:'crown',     name:'Crown',        emoji:'👑',xp:750},
+  {id:'sparkle',   name:'Sparkle',      emoji:'✨',xp:1125},
+  {id:'rainbow',   name:'Rainbow Bg',   emoji:'🌈',xp:1500},
+  {id:'sword',     name:'Sword',        emoji:'🗡️', xp:2000},
+  {id:'wings',     name:'Wings',        emoji:'🪽', xp:2750},
+  {id:'halo',      name:'Halo',         emoji:'😇', xp:3500},
+  {id:'aura',      name:'Aura',         emoji:'🌟', xp:4500},
+  {id:'mask',      name:'Hero Mask',    emoji:'🎭', xp:5500},
+  {id:'gem',       name:'Gems',         emoji:'💎', xp:7000},
 ];
 
 // ═══ STATE ═══════════════════════════════════════════════════
 const TOKEN_KEY='ot_token';
 let authToken=localStorage.getItem(TOKEN_KEY);
 const today=new Date().toDateString();
-let S={petType:null,petName:null,tasks:[],idx:0,xp:0,dayStreak:0,lastDate:'',
-  doneToday:0,totalDone:0,chainDone:0,chainTotal:0,hunger:70,happy:60,energy:0,
-  unlocked:[],equipped:[]};
+let S={pets:{},activePet:null,tasks:[],idx:0,dayStreak:0,lastDate:'',
+  doneToday:0,totalDone:0,chainDone:0,chainTotal:0};
+// AP() returns a mutable reference to the active pet's data object
+function AP(){
+  if(!S.activePet)return{name:'',xp:0,hunger:70,happy:60,energy:0,unlocked:[],equipped:[]};
+  if(!S.pets[S.activePet])S.pets[S.activePet]={name:'',xp:0,hunger:70,happy:60,energy:0,unlocked:[],equipped:[]};
+  return S.pets[S.activePet];
+}
 function applyState(data){
   if(!data)return;
   Object.assign(S,data);
-  // migrate old single-string equipped to array
-  if(typeof S.equipped==='string'||S.equipped===null)S.equipped=S.equipped?[S.equipped]:[];
+  // migrate old flat format (petType/petName/xp/etc.) → new S.pets structure
+  if(!S.pets)S.pets={};
+  if(S.petType){
+    const eq=S.equipped;
+    if(!S.pets[S.petType]){
+      S.pets[S.petType]={
+        name:S.petName||'',xp:S.xp||0,hunger:S.hunger||70,happy:S.happy||60,energy:S.energy||0,
+        unlocked:S.unlocked||[],equipped:Array.isArray(eq)?eq:(eq?[eq]:[])
+      };
+    }
+    if(!S.activePet)S.activePet=S.petType;
+  }
+  // clean up legacy top-level fields
+  delete S.petType;delete S.petName;delete S.xp;delete S.hunger;delete S.happy;delete S.energy;delete S.unlocked;delete S.equipped;
+  // migrate any pet with string equipped to array
+  Object.values(S.pets).forEach(p=>{
+    if(typeof p.equipped==='string'||p.equipped===null)p.equipped=p.equipped?[p.equipped]:[];
+  });
 }
 function applyDayRollover(){
   if(S.lastDate&&S.lastDate!==today){
     const diff=(new Date(today)-new Date(S.lastDate))/864e5;
     S.dayStreak=diff<=1.5?S.dayStreak+1:0;
-    S.doneToday=0;S.chainDone=0;S.chainTotal=0;S.energy=0;
+    S.doneToday=0;S.chainDone=0;S.chainTotal=0;
+    Object.values(S.pets).forEach(p=>{p.energy=0;});
   }
   S.lastDate=today;
 }
@@ -773,7 +898,7 @@ async function loadState(){
 }
 function getLevel(xp){return Math.floor(xp/100)+1;}
 function xpForLevel(lvl){return(lvl-1)*100;}
-function nextUnlock(){return ITEMS.find(it=>!S.unlocked.includes(it.id));}
+function nextUnlock(){return ITEMS.find(it=>!AP().unlocked.includes(it.id)&&(!it.petOnly||it.petOnly===S.activePet));}
 
 // ═══ EVOLUTION ════════════════════════════════════════════════
 function getEvolutionStage(xp){return xp>=3000?3:xp>=1000?2:1;}
@@ -797,17 +922,18 @@ function getEvolutionOverlay(stage){
 const $wrap=document.getElementById('pet-svg-wrap');
 const $petBg=document.getElementById('pet-bg');
 function getMood(){
+  const p=AP();
   if(S.doneToday>=5)return 'excited';
-  if(S.hunger<25)return 'neutral';
-  if(S.happy>65)return 'happy';
+  if(p.hunger<25)return 'neutral';
+  if(p.happy>65)return 'happy';
   return 'neutral';
 }
 function renderPet(mood){
-  if(!S.petType)return;
-  const m=mood||getMood();
-  const stage=getEvolutionStage(S.xp);
-  $wrap.innerHTML=PETS[S.petType].getSVG(m);
-  const eq=Array.isArray(S.equipped)?S.equipped:[];
+  if(!S.activePet)return;
+  const p=AP(),m=mood||getMood();
+  const stage=getEvolutionStage(p.xp);
+  $wrap.innerHTML=PETS[S.activePet].getSVG(m);
+  const eq=Array.isArray(p.equipped)?p.equipped:[];
   eq.filter(id=>id!=='rainbow').forEach(id=>{$wrap.innerHTML+=getItemSVG(id);});
   $wrap.innerHTML+=getEvolutionOverlay(stage);
   $wrap.style.filter=stage===3
@@ -849,7 +975,7 @@ function initAuth(){
       else{
         const state=await loadState();
         if(state){applyState(state);applyDayRollover();}
-        if(S.petType&&S.petName)showMain();else showOnboard();
+        if(S.activePet&&AP().name)showMain();else showOnboard();
       }
     }catch(e){
       err.textContent=e.message;
@@ -884,7 +1010,10 @@ function checkOb(){
 function startJourney(){
   const n=document.getElementById('ob-name').value.trim();
   if(!n||!obChoice)return;
-  S.petName=n;S.petType=obChoice;save();showMain();
+  if(!S.pets)S.pets={};
+  S.pets[obChoice]={name:n,xp:0,hunger:70,happy:60,energy:0,unlocked:[],equipped:[]};
+  S.activePet=obChoice;
+  save();showMain();
 }
 
 // ═══ SCREENS ═════════════════════════════════════════════════
@@ -907,17 +1036,18 @@ function showMain(){
 
 // ═══ RENDER ══════════════════════════════════════════════════
 function render(){
-  if(!S.petType)return;
-  document.getElementById('pet-name-label').textContent=S.petName||'Pet';
-  document.getElementById('level-badge').textContent='LV '+getLevel(S.xp);
+  if(!S.activePet)return;
+  const p=AP();
+  document.getElementById('pet-name-label').textContent=p.name||'Pet';
+  document.getElementById('level-badge').textContent='LV '+getLevel(p.xp);
   const mood=getMood();
   document.getElementById('mood-label').textContent={happy:'😊 happy',excited:'🔥 excited',neutral:'😐 chill',sleepy:'😴 resting'}[mood]||'😊 happy';
   renderPet(mood);
-  setBar('hunger',S.hunger);setBar('happy',S.happy);setBar('energy',S.energy);
-  const lvl=getLevel(S.xp);
-  const pct=((S.xp-xpForLevel(lvl))/(xpForLevel(lvl+1)-xpForLevel(lvl))*100).toFixed(1);
+  setBar('hunger',p.hunger);setBar('happy',p.happy);setBar('energy',p.energy);
+  const lvl=getLevel(p.xp);
+  const pct=((p.xp-xpForLevel(lvl))/(xpForLevel(lvl+1)-xpForLevel(lvl))*100).toFixed(1);
   document.getElementById('xp-fill').style.width=pct+'%';
-  document.getElementById('xp-cur').textContent=S.xp+' XP';
+  document.getElementById('xp-cur').textContent=p.xp+' XP';
   const nu=nextUnlock();
   document.getElementById('next-unlock').textContent=nu?`${nu.emoji} ${nu.name} @ ${nu.xp} XP`:'All unlocked! 🎉';
   renderItems();renderChain();renderTask();
@@ -928,16 +1058,18 @@ function setBar(id,v){
 }
 function renderItems(){
   const row=document.getElementById('items-row');row.innerHTML='';
-  const eq=Array.isArray(S.equipped)?S.equipped:[];
+  const p=AP();
+  const eq=Array.isArray(p.equipped)?p.equipped:[];
   ITEMS.forEach(item=>{
-    const ul=S.unlocked.includes(item.id),isEq=eq.includes(item.id);
+    if(item.petOnly&&item.petOnly!==S.activePet)return;
+    const ul=p.unlocked.includes(item.id),isEq=eq.includes(item.id);
     const chip=document.createElement('div');
     chip.className='item-chip'+(isEq?' equipped':'')+(ul?'':' locked');
     chip.textContent=ul?`${item.emoji} ${item.name}${isEq?' ✓':''}`:`${item.emoji} ${item.name} · ${item.xp}xp`;
     if(ul)chip.addEventListener('click',()=>{
-      const cur=Array.isArray(S.equipped)?[...S.equipped]:[];
-      if(isEq){S.equipped=cur.filter(id=>id!==item.id);}
-      else if(cur.length<3){S.equipped=[...cur,item.id];}
+      const cur=Array.isArray(p.equipped)?[...p.equipped]:[];
+      if(isEq){p.equipped=cur.filter(id=>id!==item.id);}
+      else if(cur.length<3){p.equipped=[...cur,item.id];}
       else{showFeedback('Max 3 items equipped!');return;}
       save();renderItems();renderPet(getMood());
     });
@@ -1004,24 +1136,25 @@ function addTask(){
 }
 function completeTask(){
   if(!S.tasks.length)return;
-  const prevLvl=getLevel(S.xp),prevXP=S.xp;
+  const p=AP();
+  const prevLvl=getLevel(p.xp),prevXP=p.xp;
   let gained=10;
   if(S.dayStreak>0)gained+=Math.min(S.dayStreak*2,20);
   if(S.doneToday>0&&(S.doneToday+1)%5===0)gained+=25;
-  S.xp+=gained;S.doneToday++;S.totalDone++;S.chainDone++;
-  S.hunger=Math.min(100,S.hunger+15);S.happy=Math.min(100,S.happy+10);
-  S.energy=Math.min(100,S.energy+10);
-  if(S.energy>=100){S.energy=0;S.xp+=30;showFeedback('⚡ Energy Surge! +30 XP!');}
+  p.xp+=gained;S.doneToday++;S.totalDone++;S.chainDone++;
+  p.hunger=Math.min(100,p.hunger+15);p.happy=Math.min(100,p.happy+10);
+  p.energy=Math.min(100,p.energy+10);
+  if(p.energy>=100){p.energy=0;p.xp+=30;showFeedback('⚡ Energy Surge! +30 XP!');}
   const isFullChain=S.chainDone>=S.chainTotal&&S.chainTotal>0;
-  if(isFullChain){S.xp+=50;S.happy=Math.min(100,S.happy+20);launchConfetti();showFeedback('⛓ Chain complete! +50 xp!');}
+  if(isFullChain){p.xp+=50;p.happy=Math.min(100,p.happy+20);launchConfetti();showFeedback('⛓ Chain complete! +50 xp!');}
   else showFeedback(gained);
   checkUnlocks(prevXP);
-  if(getLevel(S.xp)>prevLvl)showLevelUp(getLevel(S.xp));
-  const prevStage=getEvolutionStage(prevXP),newStage=getEvolutionStage(S.xp);
+  if(getLevel(p.xp)>prevLvl)showLevelUp(getLevel(p.xp));
+  const prevStage=getEvolutionStage(prevXP),newStage=getEvolutionStage(p.xp);
   if(newStage>prevStage){
     const labels=['','','✨ Evolved!','⚡ Legendary!'];
     const el=document.getElementById('levelup');
-    el.textContent=labels[newStage]+' '+S.petName;
+    el.textContent=labels[newStage]+' '+p.name;
     el.style.background=newStage===3?'linear-gradient(135deg,#7c3aed,#ff8906)':'linear-gradient(135deg,#f59e0b,#fbbf24)';
     el.classList.add('show');setTimeout(()=>{el.classList.remove('show');el.style.background='';},3000);
   }
@@ -1035,8 +1168,10 @@ function skipTask(){
   save();animTransition('skip',render);
 }
 function checkUnlocks(prevXP){
+  const p=AP();
   ITEMS.forEach(item=>{
-    if(!S.unlocked.includes(item.id)&&prevXP<item.xp&&S.xp>=item.xp){S.unlocked.push(item.id);showUnlockToast(item);}
+    if(item.petOnly&&item.petOnly!==S.activePet)return;
+    if(!p.unlocked.includes(item.id)&&prevXP<item.xp&&p.xp>=item.xp){p.unlocked.push(item.id);showUnlockToast(item);}
   });
 }
 
@@ -1118,8 +1253,11 @@ function drawerAddTask(){
 document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask);
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
-  if(!confirm('Reset XP, pet stats, and items? Tasks are kept.'))return;
-  S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=0;S.unlocked=[];S.equipped=[];S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
+  if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
+  const p=AP();
+  p.xp=0;p.hunger=70;p.happy=60;p.energy=0;p.unlocked=[];p.equipped=[];
+  S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.chainDone=0;S.chainTotal=0;
+  save();render();menuDr.close();
 });
 document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;const t=localStorage.getItem(TOKEN_KEY);localStorage.clear();if(t)localStorage.setItem(TOKEN_KEY,t);location.reload();});
 document.getElementById('btn-logout').addEventListener('click',()=>{if(!confirm('Log out?'))return;localStorage.removeItem(TOKEN_KEY);location.reload();});
@@ -1135,6 +1273,54 @@ document.getElementById('btn-skip').addEventListener('click',skipTask);
 document.getElementById('btn-add').addEventListener('click',addTask);
 document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
 
+// ═══ PET SWITCHER ════════════════════════════════════════════
+const petsDr=makeDrawer(null,'pets-drawer','pets-overlay',renderPetsSwitcher);
+document.getElementById('btn-open-pets').addEventListener('click',()=>{menuDr.close();renderPetsSwitcher();petsDr.open();});
+let adoptTarget=null;
+function renderPetsSwitcher(){
+  const grid=document.getElementById('ps-grid');grid.innerHTML='';
+  document.getElementById('adopt-row').style.display='none';
+  adoptTarget=null;
+  Object.entries(PETS).forEach(([key,pet])=>{
+    const petData=S.pets[key];
+    const isActive=key===S.activePet;
+    const card=document.createElement('div');
+    card.className='ps-card'+(isActive?' active':'');
+    card.innerHTML=pet.getSVG('happy');
+    const nameEl=document.createElement('div');nameEl.className='ps-name';
+    nameEl.textContent=petData?.name||pet.name;
+    card.appendChild(nameEl);
+    if(petData?.name){
+      const lvl=document.createElement('div');lvl.className='ps-level';
+      lvl.textContent='LV '+getLevel(petData.xp||0);card.appendChild(lvl);
+    }else{
+      const adopt=document.createElement('div');adopt.className='ps-adopt';
+      adopt.textContent='Adopt?';card.appendChild(adopt);
+    }
+    card.addEventListener('click',()=>{
+      if(petData?.name){
+        S.activePet=key;save();render();petsDr.close();
+      }else{
+        adoptTarget=key;
+        document.getElementById('adopt-label').textContent=`Name your ${pet.name}!`;
+        document.getElementById('adopt-input').value='';
+        document.getElementById('adopt-row').style.display='';
+        setTimeout(()=>document.getElementById('adopt-input').focus(),50);
+      }
+    });
+    grid.appendChild(card);
+  });
+}
+function doAdopt(){
+  const n=document.getElementById('adopt-input').value.trim();
+  if(!n||!adoptTarget)return;
+  S.pets[adoptTarget]={name:n,xp:0,hunger:70,happy:60,energy:0,unlocked:[],equipped:[]};
+  S.activePet=adoptTarget;adoptTarget=null;
+  save();render();petsDr.close();
+}
+document.getElementById('adopt-btn').addEventListener('click',doAdopt);
+document.getElementById('adopt-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doAdopt();}});
+
 // ═══ INIT ════════════════════════════════════════════════════
 initOnboarding();
 initAuth();
@@ -1142,7 +1328,7 @@ initAuth();
   if(authToken){
     const state=await loadState();
     if(state){applyState(state);applyDayRollover();}
-    if(S.petType&&S.petName)showMain();else showOnboard();
+    if(S.activePet&&AP().name)showMain();else showOnboard();
   }else{
     showAuthScreen();
   }
