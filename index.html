@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#0f0e17"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>OneTask</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0f0e17;--bg2:#1a1828;--surface:#1e1c2e;--surface2:#272540;
+  --border:rgba(255,255,255,0.08);--text:#fffffe;--dim:rgba(255,255,255,0.45);
+  --muted:rgba(255,255,255,0.22);--accent:#ff8906;--accent2:#f25f4c;
+  --green:#5ece8b;--blue:#4fc3f7;--purple:#b388ff;
+  --r:18px;--r-sm:12px;--shadow:0 8px 40px rgba(0,0,0,0.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;touch-action:manipulation;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;max-width:480px;margin:0 auto;overflow:hidden;transition:opacity 0.3s,transform 0.3s;}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(0.97);}
+#screen-onboard{background:var(--bg);align-items:center;justify-content:flex-start;overflow-y:auto;}
+#onboard-inner{width:100%;padding:52px 28px;padding-bottom:max(40px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;min-height:100%;}
+.ob-title{font-family:'Pixelify Sans',monospace;font-size:36px;color:var(--accent);margin-bottom:6px;letter-spacing:1px;text-shadow:0 0 24px rgba(255,137,6,0.5);}
+.ob-sub{font-size:14px;color:var(--dim);margin-bottom:36px;text-align:center;line-height:1.6;}
+.ob-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:10px;align-self:flex-start;}
+.ob-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:16px 18px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:18px;outline:none;margin-bottom:28px;caret-color:var(--accent);transition:border-color 0.2s;}
+.ob-input:focus{border-color:var(--accent);}
+.ob-input::placeholder{color:var(--muted);}
+.pet-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;margin-bottom:32px;}
+.pet-choice{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:10px 4px 10px;cursor:pointer;transition:border-color 0.18s,background 0.18s,transform 0.12s;-webkit-tap-highlight-color:transparent;overflow:hidden;}
+.pet-choice:active{transform:scale(0.93);}
+.pet-choice.selected{border-color:var(--accent);background:rgba(255,137,6,0.1);}
+.pet-choice svg{width:52px;height:52px;}
+.pet-choice span{font-size:9px;color:var(--dim);font-weight:600;letter-spacing:0.04em;text-align:center;text-transform:uppercase;}
+.ob-btn{width:100%;min-height:58px;background:var(--accent);color:#1a0a00;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:17px;font-weight:700;cursor:pointer;letter-spacing:0.02em;transition:transform 0.12s,opacity 0.12s;-webkit-tap-highlight-color:transparent;}
+.ob-btn:active{transform:scale(0.97);}
+.ob-btn:disabled{opacity:0.35;cursor:default;}
+#screen-main{background:var(--bg);justify-content:flex-start;}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px;position:relative;z-index:10;flex-shrink:0;gap:10px;}
+#pet-name-label{font-family:'Pixelify Sans',monospace;font-size:19px;color:var(--accent);letter-spacing:0.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+#level-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 13px;font-size:12px;color:var(--purple);font-weight:700;letter-spacing:0.04em;flex-shrink:0;}
+#btn-menu{background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--dim);font-size:16px;padding:6px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+#pet-stage{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:4px 20px 2px;position:relative;z-index:10;}
+#pet-bg{width:176px;height:176px;border-radius:50%;background:radial-gradient(circle,var(--surface2) 55%,transparent 100%);display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:8px;transition:background 0.5s;}
+#pet-bg.rainbow-bg{background:radial-gradient(circle,rgba(255,100,100,0.18) 0%,rgba(100,200,100,0.14) 35%,rgba(80,120,255,0.18) 65%,transparent 100%);}
+#pet-svg-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;}
+#pet-svg-wrap svg{width:140px;height:140px;overflow:visible;}
+#pet-svg-wrap.idle{animation:petIdle 2.8s ease-in-out infinite;}
+#pet-svg-wrap.bounce{animation:petBounce 0.45s ease;}
+#pet-svg-wrap.celebrate{animation:petCelebrate 0.65s ease;}
+#mood-label{position:absolute;top:-4px;right:-14px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:11px;color:var(--dim);}
+#stat-bars{width:100%;padding:0 22px;display:flex;flex-direction:column;gap:7px;flex-shrink:0;position:relative;z-index:10;}
+.stat-row{display:flex;align-items:center;gap:9px;}
+.stat-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0;}
+.stat-track{flex:1;height:7px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+.stat-fill{height:100%;border-radius:100px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1);}
+.stat-fill.hunger{background:linear-gradient(90deg,#ff8906,#f25f4c);}
+.stat-fill.happy{background:linear-gradient(90deg,#5ece8b,#4fc3f7);}
+.stat-fill.energy{background:linear-gradient(90deg,#b388ff,#4fc3f7);}
+.stat-val{font-size:10px;color:var(--muted);width:26px;text-align:right;flex-shrink:0;}
+#xp-row{padding:8px 22px 0;flex-shrink:0;position:relative;z-index:10;}
+#xp-track{height:6px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+#xp-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:100px;transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1);}
+#xp-label{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);}
+#next-unlock{color:var(--purple);}
+#items-row{padding:7px 22px 0;display:flex;gap:7px;overflow-x:auto;flex-shrink:0;position:relative;z-index:10;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+#items-row::-webkit-scrollbar{display:none;}
+.item-chip{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 11px;font-size:11px;color:var(--dim);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:border-color 0.15s,color 0.15s;-webkit-tap-highlight-color:transparent;}
+.item-chip.equipped{border-color:var(--accent);color:var(--accent);}
+.item-chip.locked{opacity:0.35;cursor:default;}
+#chain-bar{padding:6px 22px 2px;display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:10;}
+#chain-dots{display:flex;gap:4px;flex-wrap:wrap;}
+.chain-dot{width:8px;height:8px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);transition:background 0.35s,border-color 0.35s;flex-shrink:0;}
+.chain-dot.done{background:var(--accent);border-color:var(--accent);}
+#chain-label{font-size:10px;color:var(--muted);letter-spacing:0.05em;margin-left:auto;}
+#focus-label{flex-shrink:0;padding:10px 22px 6px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;position:relative;z-index:10;}
+#task-area{flex:1;display:flex;flex-direction:column;padding:0 22px;position:relative;z-index:10;min-height:0;}
+#task-count{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.05em;}
+#task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:24px 22px;min-height:96px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;}
+#task-card.pressing{transform:scale(0.97);box-shadow:0 4px 16px rgba(0,0,0,0.4);}
+#task-text{font-family:'Pixelify Sans',monospace;font-size:clamp(17px,5vw,23px);color:var(--text);line-height:1.4;letter-spacing:0.3px;}
+#task-text.empty{color:var(--muted);font-size:15px;font-family:'DM Sans',sans-serif;font-style:italic;}
+#swipe-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:7px;letter-spacing:0.04em;}
+#actions{display:flex;gap:10px;padding:10px 22px 8px;flex-shrink:0;position:relative;z-index:10;}
+.btn{flex:1;min-height:52px;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform 0.12s,opacity 0.12s;-webkit-tap-highlight-color:transparent;user-select:none;letter-spacing:0.02em;}
+.btn:active{transform:scale(0.95);}
+.btn:disabled{opacity:0.25;cursor:default;}
+#btn-done{background:var(--green);color:#0a1f12;font-weight:700;}
+#btn-skip{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
+#bottom-bar{display:flex;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
+#add-row{flex:1;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 5px 5px 14px;align-items:center;}
+#task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:40px;caret-color:var(--accent);}
+#task-input::placeholder{color:var(--muted);}
+#btn-add{width:40px;height:40px;min-height:unset;flex:none;background:var(--accent);color:#1a0a00;border-radius:9px;font-size:20px;font-weight:700;flex-shrink:0;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.drawer{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);border-radius:24px 24px 0 0;z-index:400;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);padding:16px 24px;padding-bottom:max(28px,env(safe-area-inset-bottom));max-height:82vh;overflow-y:auto;display:flex;flex-direction:column;}
+.drawer.open{transform:translateX(-50%) translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(--border);border-radius:100px;margin:0 auto 20px;flex-shrink:0;}
+.drawer-title{font-family:'Pixelify Sans',monospace;font-size:20px;color:var(--accent);margin-bottom:18px;flex-shrink:0;letter-spacing:0.5px;}
+.menu-section{margin-bottom:22px;}
+.menu-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:10px;}
+.menu-btn{width:100%;min-height:48px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--dim);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;transition:opacity 0.12s;display:flex;align-items:center;padding:0 16px;gap:10px;}
+.menu-btn:active{opacity:0.6;}
+.menu-btn.danger{color:var(--accent2);border-color:rgba(242,95,76,0.2);}
+.donate-btn{display:flex;align-items:center;gap:14px;background:rgba(255,137,6,0.08);border:1px solid rgba(255,137,6,0.25);border-radius:var(--r-sm);padding:16px;text-decoration:none;color:var(--text);transition:transform 0.12s;-webkit-tap-highlight-color:transparent;margin-bottom:8px;}
+.donate-btn:active{transform:scale(0.98);}
+.donate-title{font-size:15px;font-weight:600;color:var(--accent);}
+.donate-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 8px;text-align:center;}
+.stat-box .sv{font-family:'Pixelify Sans',monospace;font-size:22px;color:var(--text);display:block;}
+.stat-box label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;display:block;}
+.task-item{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--dim);}
+.task-item:last-child{border-bottom:none;}
+.task-item.current{color:var(--text);font-weight:600;}
+.t-dot{width:7px;height:7px;border-radius:2px;background:var(--border);flex-shrink:0;}
+.task-item.current .t-dot{background:var(--accent);}
+.t-del{margin-left:auto;background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;}
+#feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);font-family:'Pixelify Sans',monospace;font-size:20px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 24px;pointer-events:none;opacity:0;z-index:500;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.6);transition:opacity 0.15s,transform 0.15s;max-width:82vw;}
+#feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+#levelup{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;border-radius:100px;padding:10px 20px;font-size:13px;font-weight:700;letter-spacing:0.03em;box-shadow:0 8px 24px rgba(124,58,237,0.4);opacity:0;pointer-events:none;z-index:500;transition:opacity 0.3s,transform 0.3s;}
+#levelup.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#unlock-toast{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,rgba(255,137,6,0.18),rgba(242,95,76,0.12));border:1px solid rgba(255,137,6,0.4);color:var(--text);border-radius:14px;padding:12px 20px;font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;z-index:500;transition:opacity 0.3s,transform 0.3s;text-align:center;white-space:nowrap;}
+#unlock-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#tip-nudge{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid rgba(255,137,6,0.2);border-radius:100px;display:flex;align-items:center;gap:10px;padding:10px 8px 10px 18px;font-size:13px;color:var(--dim);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;z-index:400;transition:opacity 0.4s,transform 0.4s;max-width:calc(100vw - 48px);}
+#tip-nudge.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
+#tip-nudge a{color:var(--accent);text-decoration:none;font-weight:600;background:rgba(255,137,6,0.12);padding:6px 12px;border-radius:100px;}
+#tip-close{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;}
+@keyframes petIdle{0%,100%{transform:translateY(0) rotate(0deg);}25%{transform:translateY(-6px) rotate(-1deg);}75%{transform:translateY(-3px) rotate(1deg);}}
+@keyframes petBounce{0%{transform:translateY(0) scale(1);}30%{transform:translateY(-18px) scale(1.08,0.95);}55%{transform:translateY(6px) scale(0.95,1.05);}75%{transform:translateY(-8px) scale(1.04,0.97);}100%{transform:translateY(0) scale(1);}}
+@keyframes petCelebrate{0%{transform:translateY(0) rotate(0) scale(1);}15%{transform:translateY(-20px) rotate(-12deg) scale(1.12);}35%{transform:translateY(-10px) rotate(12deg) scale(1.1);}55%{transform:translateY(-16px) rotate(-6deg) scale(1.08);}75%{transform:translateY(-4px) rotate(4deg) scale(1.04);}100%{transform:translateY(0) rotate(0) scale(1);}}
+@keyframes slideOutL{to{opacity:0;transform:translateX(-44px) scale(0.94);}}
+@keyframes slideInR{from{opacity:0;transform:translateX(44px) scale(0.94);}}
+@keyframes slideOutR{to{opacity:0;transform:translateX(44px) scale(0.94);}}
+@keyframes slideInL{from{opacity:0;transform:translateX(-44px) scale(0.94);}}
+.anim-out-l{animation:slideOutL 0.24s ease forwards;}
+.anim-in-r{animation:slideInR 0.24s ease forwards;}
+.anim-out-r{animation:slideOutR 0.24s ease forwards;}
+.anim-in-l{animation:slideInL 0.24s ease forwards;}
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:600;}
+</style>
+</head>
+<body>
+<div class="screen" id="screen-onboard">
+  <div id="onboard-inner">
+    <div class="ob-title">OneTask</div>
+    <div class="ob-sub">one task at a time.<br>your companion is waiting.</div>
+    <div class="ob-label">Name your companion</div>
+    <input class="ob-input" id="ob-name" type="text" placeholder="e.g. Biscuit" maxlength="16" autocomplete="off"/>
+    <div class="ob-label">Choose your pet</div>
+    <div class="pet-grid" id="pet-grid"></div>
+    <button class="ob-btn" id="ob-start" disabled>Start your journey →</button>
+  </div>
+</div>
+<div class="screen hidden" id="screen-main">
+  <div id="topbar">
+    <div id="pet-name-label">—</div>
+    <div id="level-badge">LV 1</div>
+    <button id="btn-menu" class="btn">···</button>
+  </div>
+  <div id="pet-stage">
+    <div id="pet-bg">
+      <div id="pet-svg-wrap" class="idle"></div>
+      <div id="mood-label">😊 happy</div>
+    </div>
+  </div>
+  <div id="stat-bars">
+    <div class="stat-row"><span class="stat-icon">🍖</span><div class="stat-track"><div class="stat-fill hunger" id="bar-hunger" style="width:70%"></div></div><span class="stat-val" id="val-hunger">70</span></div>
+    <div class="stat-row"><span class="stat-icon">😄</span><div class="stat-track"><div class="stat-fill happy" id="bar-happy" style="width:60%"></div></div><span class="stat-val" id="val-happy">60</span></div>
+    <div class="stat-row"><span class="stat-icon">⚡</span><div class="stat-track"><div class="stat-fill energy" id="bar-energy" style="width:80%"></div></div><span class="stat-val" id="val-energy">80</span></div>
+  </div>
+  <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
+  <div id="items-row"></div>
+  <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
+  <div id="focus-label">current task</div>
+  <div id="task-area">
+    <div id="task-count"></div>
+    <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
+    <div id="swipe-hint">swipe right → done &nbsp;·&nbsp; swipe left → skip</div>
+  </div>
+  <div id="actions">
+    <button class="btn" id="btn-done" disabled>✓ Done</button>
+    <button class="btn" id="btn-skip" disabled>⏭ Skip</button>
+  </div>
+  <div id="bottom-bar">
+    <div id="add-row">
+      <input id="task-input" type="text" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="btn" id="btn-add">+</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="menu-overlay"></div>
+<div class="overlay" id="tasks-overlay"></div>
+<div class="drawer" id="menu-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">Menu</div>
+  <div class="menu-section">
+    <div class="menu-label">Support the app</div>
+    <a class="donate-btn" href="https://ko-fi.com/YOURNAMEHERE" target="_blank" rel="noopener">
+      <span style="font-size:24px">☕</span>
+      <div><div class="donate-title">Buy me a coffee</div><div class="donate-sub">Ko-fi · no account needed</div></div>
+      <span style="margin-left:auto;color:var(--accent);font-size:18px">→</span>
+    </a>
+  </div>
+  <div class="menu-section">
+    <div class="menu-label">Your stats</div>
+    <div class="stats-grid">
+      <div class="stat-box"><span class="sv" id="ms-done">0</span><label>done today</label></div>
+      <div class="stat-box"><span class="sv" id="ms-streak">0</span><label>day streak</label></div>
+      <div class="stat-box"><span class="sv" id="ms-total">0</span><label>all time</label></div>
+    </div>
+  </div>
+  <div class="menu-section">
+    <div class="menu-label">Tasks</div>
+    <button class="menu-btn" id="btn-open-tasks">📋 &nbsp;View all tasks</button>
+  </div>
+  <div class="menu-section">
+    <div class="menu-label">Reset</div>
+    <button class="menu-btn" id="btn-reset-stats">↺ &nbsp;Reset stats &amp; pet</button>
+    <button class="menu-btn danger" id="btn-reset-all">✕ &nbsp;Clear everything</button>
+  </div>
+</div>
+<div class="drawer" id="tasks-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">All Tasks</div>
+  <div id="tasks-list"></div>
+</div>
+<div id="feedback"></div>
+<div id="levelup">🚀 Level Up!</div>
+<div id="unlock-toast"></div>
+<div id="tip-nudge">
+  <span>enjoying OneTask?</span>
+  <a href="https://ko-fi.com/YOURNAMEHERE" target="_blank" rel="noopener">☕ tip jar</a>
+  <button id="tip-close">✕</button>
+</div>
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+// ═══════════════════════════════════════════════
+// SVG PET ILLUSTRATIONS
+// Each pet has getSVG(mood) returning SVG string
+// Moods: happy | excited | neutral | sleepy
+// ═══════════════════════════════════════════════
+
+function eyeSet(mood, lx, rx, ey, mouthPath) {
+  const brow = mood==='neutral' ? `<path d="M${lx-8},${ey-10} Q${lx},${ey-13} ${lx+8},${ey-10}" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M${rx-8},${ey-10} Q${rx},${ey-13} ${rx+8},${ey-10}" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>` : '';
+  if (mood==='sleepy') return `
+    <path d="M${lx-9},${ey} Q${lx},${ey-5} ${lx+9},${ey}" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M${rx-9},${ey} Q${rx},${ey-5} ${rx+9},${ey}" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <text x="70" y="38" font-size="12" text-anchor="middle" opacity="0.55">z z z</text>`;
+  const r = mood==='excited' ? 8 : 6.5;
+  const shine = mood==='excited' ? 2.5 : 2;
+  return `${brow}
+    <ellipse cx="${lx}" cy="${ey}" rx="${r}" ry="${r+0.5}" fill="#1a1a1a"/>
+    <ellipse cx="${lx+1.5}" cy="${ey-2}" rx="${shine}" ry="${shine}" fill="white" opacity="0.9"/>
+    <ellipse cx="${rx}" cy="${ey}" rx="${r}" ry="${r+0.5}" fill="#1a1a1a"/>
+    <ellipse cx="${rx+1.5}" cy="${ey-2}" rx="${shine}" ry="${shine}" fill="white" opacity="0.9"/>
+    ${mouthPath}
+    ${mood==='excited' ? '<text x="70" y="23" font-size="14" text-anchor="middle">✨</text>' : ''}`;
+}
+
+const PETS = {
+
+  dog: { name:'Dog', getSVG(mood) {
+    const smile = mood==='excited'
+      ? `<path d="M46,89 Q70,102 94,89" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>`
+      : mood==='neutral'
+      ? `<path d="M56,88 Q70,92 84,88" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      : `<path d="M50,89 Q70,100 90,89" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="44" rx="20" ry="26" fill="#c8860a" transform="rotate(-18 30 44)"/>
+      <ellipse cx="110" cy="44" rx="20" ry="26" fill="#c8860a" transform="rotate(18 110 44)"/>
+      <ellipse cx="30" cy="46" rx="12" ry="18" fill="#a06208" transform="rotate(-18 30 46)"/>
+      <ellipse cx="110" cy="46" rx="12" ry="18" fill="#a06208" transform="rotate(18 110 46)"/>
+      <ellipse cx="70" cy="70" rx="48" ry="45" fill="#c8860a"/>
+      <ellipse cx="70" cy="88" rx="28" ry="21" fill="#f0d898"/>
+      ${eyeSet(mood, 47, 93, 62, smile)}
+      <ellipse cx="70" cy="82" rx="10" ry="7.5" fill="#1a1a1a"/>
+      <ellipse cx="67" cy="80" rx="3" ry="2.5" fill="white" opacity="0.6"/>
+      <ellipse cx="28" cy="76" rx="10" ry="7" fill="#ff8fa3" opacity="0.3"/>
+      <ellipse cx="112" cy="76" rx="10" ry="7" fill="#ff8fa3" opacity="0.3"/>
+      <ellipse cx="70" cy="120" rx="36" ry="22" fill="#c8860a"/>
+      <ellipse cx="70" cy="121" rx="23" ry="15" fill="#f0d898"/>
+      <ellipse cx="44" cy="133" rx="15" ry="9" fill="#c8860a"/>
+      <ellipse cx="96" cy="133" rx="15" ry="9" fill="#c8860a"/>
+      <path d="M104 112 Q130 95 124 76 Q118 60 108 69" stroke="#c8860a" stroke-width="13" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }},
+
+  cat: { name:'Cat', getSVG(mood) {
+    const eyes_cat = mood==='neutral'
+      ? `<path d="M38,62 Q47,57 56,62 Q47,71 38,62Z" fill="#1a1a1a"/>
+         <ellipse cx="46" cy="61" rx="2" ry="3" fill="#4caf50"/>
+         <path d="M84,62 Q93,57 102,62 Q93,71 84,62Z" fill="#1a1a1a"/>
+         <ellipse cx="92" cy="61" rx="2" ry="3" fill="#4caf50"/>
+         <path d="M40,76 Q47,78 54,76" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+         <path d="M86,76 Q93,78 100,76" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      : mood==='sleepy'
+      ? `<path d="M38,63 Q47,58 56,63" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <path d="M84,63 Q93,58 102,63" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <text x="70" y="40" font-size="12" text-anchor="middle" opacity="0.55">z z</text>`
+      : `<ellipse cx="47" cy="62" rx="${mood==='excited'?8:6.5}" ry="${mood==='excited'?8.5:7}" fill="#1a1a1a"/>
+         <ellipse cx="49" cy="60" rx="${mood==='excited'?2.5:2}" ry="${mood==='excited'?2.5:2}" fill="white" opacity="0.9"/>
+         <ellipse cx="93" cy="62" rx="${mood==='excited'?8:6.5}" ry="${mood==='excited'?8.5:7}" fill="#1a1a1a"/>
+         <ellipse cx="95" cy="60" rx="${mood==='excited'?2.5:2}" ry="${mood==='excited'?2.5:2}" fill="white" opacity="0.9"/>
+         <path d="M${mood==='excited'?'36,76 Q47,86 58,76':'40,75 Q47,81 54,75'}" stroke="#1a1a1a" stroke-width="${mood==='excited'?3:2.5}" fill="none" stroke-linecap="round"/>
+         <path d="M${mood==='excited'?'82,76 Q93,86 104,76':'86,75 Q93,81 100,75'}" stroke="#1a1a1a" stroke-width="${mood==='excited'?3:2.5}" fill="none" stroke-linecap="round"/>
+         ${mood==='excited'?'<text x="70" y="26" font-size="14" text-anchor="middle">✨</text>':''}`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="24,56 36,20 54,56" fill="#a0a0a0"/>
+      <polygon points="86,56 104,20 116,56" fill="#a0a0a0"/>
+      <polygon points="29,53 37,26 49,53" fill="#f8bbd9"/>
+      <polygon points="91,53 103,26 111,53" fill="#f8bbd9"/>
+      <ellipse cx="70" cy="70" rx="47" ry="44" fill="#b8b8b8"/>
+      <ellipse cx="58" cy="40" rx="6" ry="4" fill="#ccc" opacity="0.4"/>
+      <ellipse cx="82" cy="40" rx="6" ry="4" fill="#ccc" opacity="0.4"/>
+      <ellipse cx="70" cy="88" rx="25" ry="18" fill="#e8e8e8"/>
+      ${eyes_cat}
+      <polygon points="70,80 66,85 74,85" fill="#ff8fa3"/>
+      <path d="M66,85 Q70,91 74,85" stroke="#999" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <line x1="47" y1="86" x2="8" y2="81" stroke="#aaa" stroke-width="1.5" opacity="0.7"/>
+      <line x1="47" y1="89" x2="8" y2="90" stroke="#aaa" stroke-width="1.5" opacity="0.7"/>
+      <line x1="93" y1="86" x2="132" y2="81" stroke="#aaa" stroke-width="1.5" opacity="0.7"/>
+      <line x1="93" y1="89" x2="132" y2="90" stroke="#aaa" stroke-width="1.5" opacity="0.7"/>
+      <ellipse cx="28" cy="78" rx="10" ry="7" fill="#ff8fa3" opacity="0.28"/>
+      <ellipse cx="112" cy="78" rx="10" ry="7" fill="#ff8fa3" opacity="0.28"/>
+      <ellipse cx="70" cy="120" rx="34" ry="22" fill="#b8b8b8"/>
+      <ellipse cx="70" cy="122" rx="22" ry="14" fill="#e8e8e8"/>
+      <ellipse cx="46" cy="132" rx="13" ry="9" fill="#b8b8b8"/>
+      <ellipse cx="94" cy="132" rx="13" ry="9" fill="#b8b8b8"/>
+      <path d="M102 113 Q132 106 134 120 Q136 134 118 134 Q104 135 102 126" stroke="#b8b8b8" stroke-width="12" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }},
+
+  dragon: { name:'Dragon', getSVG(mood) {
+    const smile = mood==='excited'
+      ? `<path d="M44,82 Q70,96 96,82" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+         <rect x="59" y="84" width="6" height="8" rx="2" fill="white"/>
+         <rect x="75" y="84" width="6" height="8" rx="2" fill="white"/>`
+      : mood==='neutral'
+      ? `<path d="M56,82 Q70,86 84,82" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      : `<path d="M48,83 Q70,95 92,83" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <rect x="62" y="85" width="5" height="7" rx="2" fill="white"/>
+         <rect x="73" y="85" width="5" height="7" rx="2" fill="white"/>`;
+    const eyeColor = '#ff5722';
+    const eyesD = mood==='sleepy'
+      ? `<ellipse cx="46" cy="59" rx="8" ry="4" fill="${eyeColor}"/>
+         <path d="M38,59 Q46,54 54,59" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <ellipse cx="94" cy="59" rx="8" ry="4" fill="${eyeColor}"/>
+         <path d="M86,59 Q94,54 102,59" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <text x="70" y="36" font-size="12" opacity="0.55">z z z</text>`
+      : `<ellipse cx="46" cy="58" rx="9" ry="9" fill="${eyeColor}"/>
+         <ellipse cx="46" cy="58" rx="${mood==='excited'?5.5:4}" ry="${mood==='excited'?6.5:5.5}" fill="#1a1a1a"/>
+         <ellipse cx="48" cy="55.5" rx="${mood==='excited'?2:1.5}" ry="${mood==='excited'?2:1.5}" fill="white" opacity="0.9"/>
+         <ellipse cx="94" cy="58" rx="9" ry="9" fill="${eyeColor}"/>
+         <ellipse cx="94" cy="58" rx="${mood==='excited'?5.5:4}" ry="${mood==='excited'?6.5:5.5}" fill="#1a1a1a"/>
+         <ellipse cx="96" cy="55.5" rx="${mood==='excited'?2:1.5}" ry="${mood==='excited'?2:1.5}" fill="white" opacity="0.9"/>
+         ${smile}
+         ${mood==='excited'?'<text x="70" y="20" font-size="16" text-anchor="middle">🔥</text>':''}`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="42,10 36,38 52,34" fill="#ff7043"/>
+      <polygon points="98,10 88,34 104,38" fill="#ff7043"/>
+      <polygon points="42,14 38,34 50,31" fill="#ffccbc"/>
+      <polygon points="98,14 90,31 102,34" fill="#ffccbc"/>
+      <path d="M18 82 Q4 52 16 32 Q28 18 38 50" fill="#388e3c" opacity="0.85"/>
+      <path d="M122 82 Q136 52 124 32 Q112 18 102 50" fill="#388e3c" opacity="0.85"/>
+      <path d="M20 77 Q8 52 18 36 Q28 26 36 52" fill="#c8e6c9" opacity="0.45"/>
+      <ellipse cx="70" cy="68" rx="46" ry="42" fill="#4caf50"/>
+      <ellipse cx="70" cy="56" rx="16" ry="9" fill="#388e3c" opacity="0.35"/>
+      <ellipse cx="70" cy="85" rx="24" ry="17" fill="#66bb6a"/>
+      <ellipse cx="62" cy="83" rx="4" ry="3" fill="#2e7d32"/>
+      <ellipse cx="78" cy="83" rx="4" ry="3" fill="#2e7d32"/>
+      ${eyesD}
+      <ellipse cx="26" cy="72" rx="9" ry="7" fill="#ff7043" opacity="0.28"/>
+      <ellipse cx="114" cy="72" rx="9" ry="7" fill="#ff7043" opacity="0.28"/>
+      <ellipse cx="70" cy="120" rx="36" ry="22" fill="#4caf50"/>
+      <ellipse cx="70" cy="120" rx="23" ry="15" fill="#80cbc4"/>
+      <ellipse cx="44" cy="132" rx="15" ry="9" fill="#4caf50"/>
+      <ellipse cx="96" cy="132" rx="15" ry="9" fill="#4caf50"/>
+      <line x1="38" y1="138" x2="34" y2="140" stroke="#2e7d32" stroke-width="2.5"/>
+      <line x1="44" y1="139" x2="44" y2="140" stroke="#2e7d32" stroke-width="2.5"/>
+      <line x1="50" y1="138" x2="54" y2="140" stroke="#2e7d32" stroke-width="2.5"/>
+      <path d="M104 113 Q128 100 130 118 Q132 132 112 132" stroke="#4caf50" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <polygon points="128,100 136,88 132,108" fill="#388e3c"/>
+    </svg>`;
+  }},
+
+  alien: { name:'Alien', getSVG(mood) {
+    const bigEyes = mood==='sleepy'
+      ? `<path d="M31,64 Q44,58 57,64" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <path d="M83,64 Q96,58 109,64" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <text x="70" y="42" font-size="12" opacity="0.55">z z z</text>`
+      : `<ellipse cx="44" cy="63" rx="${mood==='excited'?14:12}" ry="${mood==='excited'?12:10}" fill="#1a1a1a"/>
+         <ellipse cx="44" cy="63" rx="${mood==='excited'?10:8}" ry="${mood==='excited'?9:7.5}" fill="#00e5ff"/>
+         <ellipse cx="40" cy="59" rx="${mood==='excited'?3.5:3}" ry="${mood==='excited'?3.5:3}" fill="white" opacity="0.85"/>
+         <ellipse cx="96" cy="63" rx="${mood==='excited'?14:12}" ry="${mood==='excited'?12:10}" fill="#1a1a1a"/>
+         <ellipse cx="96" cy="63" rx="${mood==='excited'?10:8}" ry="${mood==='excited'?9:7.5}" fill="#00e5ff"/>
+         <ellipse cx="92" cy="59" rx="${mood==='excited'?3.5:3}" ry="${mood==='excited'?3.5:3}" fill="white" opacity="0.85"/>
+         <path d="M${mood==='excited'?'34,82 Q44,92 54,82':'38,82 Q44,89 50,82'}" stroke="#1a1a1a" stroke-width="${mood==='excited'?3:2.5}" fill="none" stroke-linecap="round"/>
+         <path d="M${mood==='excited'?'86,82 Q96,92 106,82':'90,82 Q96,89 102,82'}" stroke="#1a1a1a" stroke-width="${mood==='excited'?3:2.5}" fill="none" stroke-linecap="round"/>
+         ${mood==='excited'?'<circle cx="70" cy="22" r="5" fill="#00e5ff" opacity="0.9"/><circle cx="56" cy="14" r="4" fill="#ff80ab" opacity="0.8"/><circle cx="84" cy="14" r="4" fill="#69f0ae" opacity="0.8"/>':''}
+         ${mood==='neutral'?`<path d="M36,82 Q44,80 52,82" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M88,82 Q96,80 104,82" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`:``}`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <line x1="52" y1="18" x2="44" y2="2" stroke="#80cbc4" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="44" cy="2" r="5" fill="#ff80ab"/>
+      <line x1="88" y1="18" x2="96" y2="2" stroke="#80cbc4" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="96" cy="2" r="5" fill="#69f0ae"/>
+      <ellipse cx="70" cy="64" rx="52" ry="54" fill="#80cbc4"/>
+      <ellipse cx="54" cy="36" rx="14" ry="9" fill="#b2dfdb" opacity="0.5"/>
+      ${bigEyes}
+      <ellipse cx="65" cy="79" rx="3" ry="2" fill="#4db6ac"/>
+      <ellipse cx="75" cy="79" rx="3" ry="2" fill="#4db6ac"/>
+      <ellipse cx="70" cy="122" rx="28" ry="20" fill="#80cbc4"/>
+      <ellipse cx="70" cy="125" rx="18" ry="12" fill="#b2dfdb"/>
+      <path d="M42 110 Q20 108 16 122" stroke="#80cbc4" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <path d="M98 110 Q120 108 124 122" stroke="#80cbc4" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <circle cx="12" cy="124" r="5" fill="#80cbc4"/>
+      <circle cx="16" cy="130" r="5" fill="#80cbc4"/>
+      <circle cx="22" cy="126" r="5" fill="#80cbc4"/>
+      <circle cx="128" cy="124" r="5" fill="#80cbc4"/>
+      <circle cx="124" cy="130" r="5" fill="#80cbc4"/>
+      <circle cx="118" cy="126" r="5" fill="#80cbc4"/>
+      <ellipse cx="54" cy="135" rx="14" ry="8" fill="#80cbc4"/>
+      <ellipse cx="86" cy="135" rx="14" ry="8" fill="#80cbc4"/>
+    </svg>`;
+  }},
+
+  unicorn: { name:'Unicorn', getSVG(mood) {
+    const smile = mood==='excited'
+      ? `<path d="M42,78 Q68,93 94,78" stroke="#f48fb1" stroke-width="3" fill="none" stroke-linecap="round"/>
+         <text x="68" y="22" font-size="14" text-anchor="middle">🌈</text>`
+      : mood==='neutral'
+      ? `<path d="M52,77 Q68,81 84,77" stroke="#f48fb1" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      : `<path d="M46,78 Q68,91 90,78" stroke="#f48fb1" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="hg" x1="0" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stop-color="#ff6ec7"/><stop offset="50%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#38bdf8"/>
+        </linearGradient>
+        <linearGradient id="mg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ff6ec7"/><stop offset="40%" stop-color="#a78bfa"/>
+          <stop offset="75%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#34d399"/>
+        </linearGradient>
+      </defs>
+      <polygon points="68,2 62,36 74,36" fill="url(#hg)"/>
+      <line x1="66" y1="6" x2="68" y2="32" stroke="white" stroke-width="1.5" opacity="0.6"/>
+      <path d="M16 54 Q6 72 12 88 Q18 102 28 96 Q22 80 28 64 Q34 50 26 40Z" fill="url(#mg)"/>
+      <path d="M18 52 Q10 68 16 84 Q22 96 28 90 Q22 76 28 62Z" fill="white" opacity="0.2"/>
+      <ellipse cx="36" cy="36" rx="15" ry="20" fill="#f8bbd9" transform="rotate(-18 36 36)"/>
+      <ellipse cx="104" cy="38" rx="11" ry="16" fill="#f8bbd9" transform="rotate(12 104 38)"/>
+      <ellipse cx="36" cy="37" rx="8" ry="12" fill="#ff80b0" transform="rotate(-18 36 37)"/>
+      <ellipse cx="104" cy="39" rx="6" ry="9" fill="#ff80b0" transform="rotate(12 104 39)"/>
+      <ellipse cx="70" cy="70" rx="46" ry="44" fill="#f8bbd9"/>
+      <ellipse cx="70" cy="86" rx="24" ry="17" fill="#fce4ec"/>
+      ${eyeSet(mood, 47, 93, 63, smile)}
+      <ellipse cx="63" cy="83" rx="3.5" ry="2.5" fill="#ff80b0"/>
+      <ellipse cx="77" cy="83" rx="3.5" ry="2.5" fill="#ff80b0"/>
+      <ellipse cx="26" cy="76" rx="11" ry="8" fill="#ff80b0" opacity="0.28"/>
+      <ellipse cx="114" cy="76" rx="11" ry="8" fill="#ff80b0" opacity="0.28"/>
+      <text x="25" y="74" font-size="8" text-anchor="middle" opacity="0.65">⭐</text>
+      <text x="115" y="74" font-size="8" text-anchor="middle" opacity="0.65">⭐</text>
+      <ellipse cx="70" cy="120" rx="36" ry="22" fill="#f8bbd9"/>
+      <ellipse cx="70" cy="122" rx="23" ry="15" fill="#fce4ec"/>
+      <ellipse cx="44" cy="133" rx="14" ry="9" fill="#f48fb1"/>
+      <ellipse cx="96" cy="133" rx="14" ry="9" fill="#f48fb1"/>
+      <path d="M104 112 Q130 97 126 113 Q122 130 106 128" stroke="url(#mg)" stroke-width="13" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }},
+
+  gecko: { name:'Gecko', getSVG(mood) {
+    const eyeG = mood==='sleepy'
+      ? `<path d="M36,52 Q47,47 58,52" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <path d="M82,52 Q93,47 104,52" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <text x="70" y="36" font-size="11" opacity="0.55">z z</text>`
+      : `<circle cx="47" cy="51" r="${mood==='excited'?11:9.5}" fill="#1a1a1a"/>
+         <circle cx="47" cy="51" r="${mood==='excited'?8:6.5}" fill="#ffeb3b"/>
+         <ellipse cx="47" cy="${mood==='excited'?52:53}" rx="${mood==='excited'?4:3}" ry="${mood==='excited'?6:5}" fill="#1a1a1a"/>
+         <circle cx="44.5" cy="48.5" r="${mood==='excited'?2:1.5}" fill="white" opacity="0.9"/>
+         <circle cx="93" cy="51" r="${mood==='excited'?11:9.5}" fill="#1a1a1a"/>
+         <circle cx="93" cy="51" r="${mood==='excited'?8:6.5}" fill="#ffeb3b"/>
+         <ellipse cx="93" cy="${mood==='excited'?52:53}" rx="${mood==='excited'?4:3}" ry="${mood==='excited'?6:5}" fill="#1a1a1a"/>
+         <circle cx="90.5" cy="48.5" r="${mood==='excited'?2:1.5}" fill="white" opacity="0.9"/>
+         <path d="M${mood==='excited'?'52,72 Q70,84 88,72':'56,70 Q70,80 84,70'}" stroke="#1a1a1a" stroke-width="${mood==='excited'?3:2.5}" fill="none" stroke-linecap="round"/>
+         ${mood==='neutral'?`<path d="M58,70 Q70,72 82,70" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`:``}
+         ${mood==='excited'?'<text x="70" y="25" font-size="13" text-anchor="middle">✨</text>':''}`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <path d="M28 90 Q6 82 2 98 Q0 110 12 112" stroke="#66bb6a" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M112 90 Q134 82 138 98 Q140 110 128 112" stroke="#66bb6a" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <circle cx="8" cy="113" r="5" fill="#a5d6a7"/>
+      <circle cx="4" cy="106" r="4.5" fill="#a5d6a7"/>
+      <circle cx="13" cy="118" r="4.5" fill="#a5d6a7"/>
+      <circle cx="132" cy="113" r="5" fill="#a5d6a7"/>
+      <circle cx="136" cy="106" r="4.5" fill="#a5d6a7"/>
+      <circle cx="127" cy="118" r="4.5" fill="#a5d6a7"/>
+      <ellipse cx="70" cy="56" rx="52" ry="37" fill="#66bb6a"/>
+      <circle cx="54" cy="44" r="5" fill="#388e3c" opacity="0.4"/>
+      <circle cx="86" cy="44" r="5" fill="#388e3c" opacity="0.4"/>
+      <circle cx="70" cy="40" r="4" fill="#388e3c" opacity="0.3"/>
+      ${eyeG}
+      <ellipse cx="64" cy="66" rx="3.5" ry="2.5" fill="#388e3c"/>
+      <ellipse cx="76" cy="66" rx="3.5" ry="2.5" fill="#388e3c"/>
+      <path d="M70,72 L70,86 Q63,93 59,89" stroke="#f44336" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="70" cy="108" rx="32" ry="22" fill="#66bb6a"/>
+      <ellipse cx="70" cy="96" rx="16" ry="11" fill="#ffeb3b" opacity="0.65"/>
+      <circle cx="57" cy="108" r="5" fill="#388e3c" opacity="0.45"/>
+      <circle cx="83" cy="108" r="5" fill="#388e3c" opacity="0.45"/>
+      <ellipse cx="46" cy="128" rx="13" ry="9" fill="#66bb6a"/>
+      <ellipse cx="94" cy="128" rx="13" ry="9" fill="#66bb6a"/>
+      <path d="M102 114 Q126 109 132 120 Q138 132 128 136 Q116 140 108 134" stroke="#66bb6a" stroke-width="11" fill="none" stroke-linecap="round"/>
+    </svg>`;
+  }},
+
+  bear: { name:'Bear', getSVG(mood) {
+    const smile = mood==='excited'
+      ? `<path d="M44,90 Q70,104 96,90" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+         <line x1="70" y1="90" x2="70" y2="97" stroke="#1a1a1a" stroke-width="2"/>
+         <text x="70" y="25" font-size="14" text-anchor="middle">🍯</text>`
+      : mood==='neutral'
+      ? `<path d="M58,89 Q70,93 82,89" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      : `<path d="M50,90 Q70,102 90,90" stroke="#1a1a1a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <line x1="70" y1="90" x2="70" y2="97" stroke="#1a1a1a" stroke-width="2"/>`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="35" r="22" fill="#8d6e63"/>
+      <circle cx="110" cy="35" r="22" fill="#8d6e63"/>
+      <circle cx="30" cy="35" r="14" fill="#bcaaa4"/>
+      <circle cx="110" cy="35" r="14" fill="#bcaaa4"/>
+      <ellipse cx="70" cy="72" rx="48" ry="46" fill="#8d6e63"/>
+      <ellipse cx="70" cy="90" rx="30" ry="21" fill="#d7ccc8"/>
+      ${eyeSet(mood, 48, 92, 64, smile)}
+      <ellipse cx="70" cy="84" rx="11" ry="8" fill="#1a1a1a"/>
+      <ellipse cx="67" cy="82" rx="3.5" ry="2.5" fill="white" opacity="0.55"/>
+      <ellipse cx="26" cy="78" rx="12" ry="9" fill="#ff8a65" opacity="0.32"/>
+      <ellipse cx="114" cy="78" rx="12" ry="9" fill="#ff8a65" opacity="0.32"/>
+      <ellipse cx="70" cy="120" rx="40" ry="24" fill="#8d6e63"/>
+      <ellipse cx="70" cy="122" rx="27" ry="17" fill="#d7ccc8"/>
+      <ellipse cx="42" cy="134" rx="17" ry="10" fill="#8d6e63"/>
+      <ellipse cx="98" cy="134" rx="17" ry="10" fill="#8d6e63"/>
+      <line x1="36" y1="140" x2="33" y2="140" stroke="#6d4c41" stroke-width="2.5"/>
+      <line x1="42" y1="140" x2="42" y2="140" stroke="#6d4c41" stroke-width="2.5"/>
+      <line x1="48" y1="140" x2="51" y2="140" stroke="#6d4c41" stroke-width="2.5"/>
+    </svg>`;
+  }},
+
+  redpanda: { name:'Red Panda', getSVG(mood) {
+    const smile = mood==='excited'
+      ? `<path d="M40,78 Q46,88 52,78" stroke="#3e2723" stroke-width="3" fill="none" stroke-linecap="round"/>
+         <path d="M88,78 Q94,88 100,78" stroke="#3e2723" stroke-width="3" fill="none" stroke-linecap="round"/>
+         <text x="70" y="22" font-size="14" text-anchor="middle">✨</text>`
+      : mood==='neutral'
+      ? `<path d="M42,76 Q46,78 50,76" stroke="#3e2723" stroke-width="2" fill="none" stroke-linecap="round"/>
+         <path d="M90,76 Q94,78 98,76" stroke="#3e2723" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      : `<path d="M38,77 Q46,86 54,77" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+         <path d="M86,77 Q94,86 102,77" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="35" r="19" fill="#e64a19" transform="rotate(-12 30 35)"/>
+      <ellipse cx="110" cy="35" r="19" fill="#e64a19" transform="rotate(12 110 35)"/>
+      <ellipse cx="30" cy="30" r="10" fill="#fff8e1" transform="rotate(-12 30 30)"/>
+      <ellipse cx="110" cy="30" r="10" fill="#fff8e1" transform="rotate(12 110 30)"/>
+      <ellipse cx="70" cy="70" rx="48" ry="46" fill="#e64a19"/>
+      <ellipse cx="43" cy="66" rx="17" ry="14" fill="#fff8e1"/>
+      <ellipse cx="97" cy="66" rx="17" ry="14" fill="#fff8e1"/>
+      <path d="M36,82 Q38,96 33,102" stroke="#3e2723" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.65"/>
+      <path d="M104,82 Q102,96 107,102" stroke="#3e2723" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0.65"/>
+      <ellipse cx="70" cy="88" rx="26" ry="18" fill="#ffe0b2"/>
+      ${eyeSet(mood, 46, 94, 64, smile)}
+      <ellipse cx="70" cy="83" rx="8" ry="6" fill="#1a1a1a"/>
+      <ellipse cx="67.5" cy="81.5" rx="2.5" ry="2" fill="white" opacity="0.5"/>
+      <line x1="50" y1="86" x2="13" y2="81" stroke="#fff8e1" stroke-width="1.8" opacity="0.8"/>
+      <line x1="50" y1="89" x2="13" y2="90" stroke="#fff8e1" stroke-width="1.8" opacity="0.8"/>
+      <line x1="90" y1="86" x2="127" y2="81" stroke="#fff8e1" stroke-width="1.8" opacity="0.8"/>
+      <line x1="90" y1="89" x2="127" y2="90" stroke="#fff8e1" stroke-width="1.8" opacity="0.8"/>
+      <ellipse cx="26" cy="76" rx="12" ry="8" fill="#ff7043" opacity="0.3"/>
+      <ellipse cx="114" cy="76" rx="12" ry="8" fill="#ff7043" opacity="0.3"/>
+      <ellipse cx="70" cy="120" rx="36" ry="22" fill="#e64a19"/>
+      <ellipse cx="70" cy="122" rx="23" ry="15" fill="#ffe0b2"/>
+      <ellipse cx="44" cy="133" rx="14" ry="9" fill="#bf360c"/>
+      <ellipse cx="96" cy="133" rx="14" ry="9" fill="#bf360c"/>
+      <path d="M104 112 Q130 100 132 117 Q134 133 114 135 Q100 136 98 127" stroke="#e64a19" stroke-width="14" fill="none" stroke-linecap="round"/>
+      <path d="M104 112 Q130 100 132 117 Q134 133 114 135 Q100 136 98 127" stroke="#fff8e1" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="9,9"/>
+    </svg>`;
+  }},
+
+};
+
+// Item overlays as absolute SVG layers
+function getItemSVG(itemId) {
+  const o = {
+    hat:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <rect x="40" y="18" width="60" height="9" rx="4" fill="#1a1a1a"/>
+      <rect x="52" y="5" width="36" height="15" rx="5" fill="#1a1a1a"/>
+      <rect x="50" y="15" width="40" height="5" rx="2" fill="#e53935"/>
+      <rect x="55" y="7" width="30" height="4" rx="2" fill="#424242"/>
+    </svg>`,
+    glasses:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <rect x="24" y="54" width="34" height="24" rx="9" fill="#00bcd4" opacity="0.62"/>
+      <rect x="82" y="54" width="34" height="24" rx="9" fill="#00bcd4" opacity="0.62"/>
+      <line x1="58" y1="63" x2="82" y2="63" stroke="#1a1a1a" stroke-width="3.5"/>
+      <line x1="16" y1="60" x2="24" y2="63" stroke="#1a1a1a" stroke-width="3"/>
+      <line x1="116" y1="63" x2="124" y2="60" stroke="#1a1a1a" stroke-width="3"/>
+    </svg>`,
+    cape:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <path d="M34 98 Q20 120 24 140 L52 140 Q42 118 42 100Z" fill="#e53935"/>
+      <path d="M106 98 Q120 120 116 140 L88 140 Q98 118 98 100Z" fill="#e53935"/>
+      <rect x="34" y="95" width="9" height="7" rx="2.5" fill="#ffd600"/>
+      <rect x="97" y="95" width="9" height="7" rx="2.5" fill="#ffd600"/>
+    </svg>`,
+    crown:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <polygon points="36,28 70,2 104,28 98,44 42,44" fill="#ffd600"/>
+      <polygon points="36,28 26,10 46,30" fill="#ffd600"/>
+      <polygon points="104,28 114,10 94,30" fill="#ffd600"/>
+      <circle cx="70" cy="8" r="6" fill="#e53935"/>
+      <circle cx="34" cy="22" r="4.5" fill="#2196f3"/>
+      <circle cx="106" cy="22" r="4.5" fill="#4caf50"/>
+      <rect x="34" y="38" width="72" height="9" rx="3" fill="#f9a825"/>
+    </svg>`,
+    sparkle:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
+      <text x="6" y="42" font-size="18">✨</text>
+      <text x="112" y="46" font-size="14">⭐</text>
+      <text x="6" y="94" font-size="13">💫</text>
+      <text x="114" y="92" font-size="16">✨</text>
+      <text x="54" y="8" font-size="11">⭐</text>
+    </svg>`,
+    rainbow:'',
+  };
+  return o[itemId]||'';
+}
+
+// ═══ ITEMS ═══════════════════════════════════════════════════
+const ITEMS=[
+  {id:'hat',     name:'Tiny Hat',   emoji:'🎩',xp:50},
+  {id:'glasses', name:'Sunglasses', emoji:'😎',xp:150},
+  {id:'cape',    name:'Cape',       emoji:'🦸',xp:300},
+  {id:'crown',   name:'Crown',      emoji:'👑',xp:500},
+  {id:'sparkle', name:'Sparkle',    emoji:'✨',xp:750},
+  {id:'rainbow', name:'Rainbow',    emoji:'🌈',xp:1000},
+];
+
+// ═══ STATE ═══════════════════════════════════════════════════
+const LS={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+};
+const today=new Date().toDateString();
+let S={
+  petType:LS.get('ot_petType',null),petName:LS.get('ot_petName',null),
+  tasks:LS.get('ot_tasks',[]),idx:LS.get('ot_idx',0),
+  xp:LS.get('ot_xp',0),dayStreak:LS.get('ot_dayStreak',0),lastDate:LS.get('ot_lastDate',''),
+  doneToday:LS.get('ot_doneToday',0),totalDone:LS.get('ot_totalDone',0),
+  chainDone:LS.get('ot_chainDone',0),chainTotal:LS.get('ot_chainTotal',0),
+  hunger:LS.get('ot_hunger',70),happy:LS.get('ot_happy',60),energy:LS.get('ot_energy',80),
+  unlocked:LS.get('ot_unlocked',[]),equipped:LS.get('ot_equipped',null),
+};
+if(S.lastDate&&S.lastDate!==today){
+  const diff=(new Date(today)-new Date(S.lastDate))/864e5;
+  S.dayStreak=diff<=1.5?S.dayStreak+1:0;
+  S.doneToday=0;S.chainDone=0;S.chainTotal=0;S.energy=Math.min(100,S.energy+30);
+}
+S.lastDate=today;
+function save(){
+  const m={ot_petType:S.petType,ot_petName:S.petName,ot_tasks:S.tasks,ot_idx:S.idx,
+    ot_xp:S.xp,ot_dayStreak:S.dayStreak,ot_lastDate:S.lastDate,
+    ot_doneToday:S.doneToday,ot_totalDone:S.totalDone,
+    ot_chainDone:S.chainDone,ot_chainTotal:S.chainTotal,
+    ot_hunger:S.hunger,ot_happy:S.happy,ot_energy:S.energy,
+    ot_unlocked:S.unlocked,ot_equipped:S.equipped};
+  Object.entries(m).forEach(([k,v])=>LS.set(k,v));
+}
+function getLevel(xp){return Math.floor(xp/100)+1;}
+function xpForLevel(lvl){return(lvl-1)*100;}
+function nextUnlock(){return ITEMS.find(it=>!S.unlocked.includes(it.id));}
+
+// ═══ PET RENDER ══════════════════════════════════════════════
+const $wrap=document.getElementById('pet-svg-wrap');
+const $petBg=document.getElementById('pet-bg');
+function getMood(){
+  if(S.doneToday>=5)return 'excited';
+  if(S.hunger<25)return 'neutral';
+  if(S.happy>65)return 'happy';
+  return 'neutral';
+}
+function renderPet(mood){
+  if(!S.petType)return;
+  const m=mood||getMood();
+  $wrap.innerHTML=PETS[S.petType].getSVG(m);
+  if(S.equipped&&S.equipped!=='rainbow')$wrap.innerHTML+=getItemSVG(S.equipped);
+  $petBg.classList.toggle('rainbow-bg',S.equipped==='rainbow');
+}
+function triggerPetAnim(type){
+  $wrap.classList.remove('idle','bounce','celebrate');
+  void $wrap.offsetWidth;
+  $wrap.classList.add(type);
+  setTimeout(()=>{$wrap.classList.remove(type);$wrap.classList.add('idle');},(type==='celebrate'?700:500));
+}
+
+// ═══ ONBOARDING ══════════════════════════════════════════════
+let obChoice=null;
+function initOnboarding(){
+  const grid=document.getElementById('pet-grid');
+  Object.entries(PETS).forEach(([key,pet])=>{
+    const el=document.createElement('div');el.className='pet-choice';el.dataset.k=key;
+    el.innerHTML=pet.getSVG('happy');
+    const sp=document.createElement('span');sp.textContent=pet.name;el.appendChild(sp);
+    el.addEventListener('click',()=>{
+      document.querySelectorAll('.pet-choice').forEach(e=>e.classList.remove('selected'));
+      el.classList.add('selected');obChoice=key;checkOb();
+    });
+    grid.appendChild(el);
+  });
+  document.getElementById('ob-name').addEventListener('input',checkOb);
+  document.getElementById('ob-start').addEventListener('click',startJourney);
+}
+function checkOb(){
+  const n=document.getElementById('ob-name').value.trim();
+  document.getElementById('ob-start').disabled=!n||!obChoice;
+}
+function startJourney(){
+  const n=document.getElementById('ob-name').value.trim();
+  if(!n||!obChoice)return;
+  S.petName=n;S.petType=obChoice;save();showMain();
+}
+
+// ═══ SCREENS ═════════════════════════════════════════════════
+function showMain(){
+  document.getElementById('screen-onboard').classList.add('hidden');
+  document.getElementById('screen-main').classList.remove('hidden');
+  renderPet();render();$wrap.classList.add('idle');
+}
+
+// ═══ RENDER ══════════════════════════════════════════════════
+function render(){
+  if(!S.petType)return;
+  document.getElementById('pet-name-label').textContent=S.petName||'Pet';
+  document.getElementById('level-badge').textContent='LV '+getLevel(S.xp);
+  const mood=getMood();
+  document.getElementById('mood-label').textContent={happy:'😊 happy',excited:'🔥 excited',neutral:'😐 chill',sleepy:'😴 resting'}[mood]||'😊 happy';
+  renderPet(mood);
+  setBar('hunger',S.hunger);setBar('happy',S.happy);setBar('energy',S.energy);
+  const lvl=getLevel(S.xp);
+  const pct=((S.xp-xpForLevel(lvl))/(xpForLevel(lvl+1)-xpForLevel(lvl))*100).toFixed(1);
+  document.getElementById('xp-fill').style.width=pct+'%';
+  document.getElementById('xp-cur').textContent=S.xp+' XP';
+  const nu=nextUnlock();
+  document.getElementById('next-unlock').textContent=nu?`${nu.emoji} ${nu.name} @ ${nu.xp} XP`:'All unlocked! 🎉';
+  renderItems();renderChain();renderTask();
+}
+function setBar(id,v){
+  document.getElementById('bar-'+id).style.width=Math.max(0,Math.min(100,v))+'%';
+  document.getElementById('val-'+id).textContent=Math.round(v);
+}
+function renderItems(){
+  const row=document.getElementById('items-row');row.innerHTML='';
+  ITEMS.forEach(item=>{
+    const ul=S.unlocked.includes(item.id),eq=S.equipped===item.id;
+    const chip=document.createElement('div');
+    chip.className='item-chip'+(eq?' equipped':'')+(ul?'':' locked');
+    chip.textContent=ul?`${item.emoji} ${item.name}${eq?' ✓':''}`:`${item.emoji} ${item.name} · ${item.xp}xp`;
+    if(ul)chip.addEventListener('click',()=>{S.equipped=eq?null:item.id;save();renderItems();renderPet(getMood());});
+    row.appendChild(chip);
+  });
+}
+function renderChain(){
+  const dots=document.getElementById('chain-dots');dots.innerHTML='';
+  const total=Math.max(S.chainTotal,S.chainDone,5);
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='chain-dot'+(i<S.chainDone?' done':'');dots.appendChild(d);
+  }
+  document.getElementById('chain-label').textContent=`${S.chainDone}/${total} today`;
+}
+function renderTask(){
+  const tasks=S.tasks,$t=document.getElementById('task-text'),
+    $c=document.getElementById('task-count'),
+    $d=document.getElementById('btn-done'),$s=document.getElementById('btn-skip');
+  if(!tasks.length){$t.textContent='Add a task below ↓';$t.className='empty';$d.disabled=true;$s.disabled=true;$c.textContent='';return;}
+  if(S.idx>=tasks.length)S.idx=0;
+  $t.textContent=tasks[S.idx];$t.className='';$d.disabled=false;
+  $s.disabled=tasks.length<2;$c.textContent=tasks.length===1?'1 task left':`${tasks.length} tasks`;
+}
+function renderTasksDrawer(){
+  const list=document.getElementById('tasks-list');list.innerHTML='';
+  if(!S.tasks.length){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:24px 0;font-size:14px;">No tasks yet</div>';return;}
+  S.tasks.forEach((t,i)=>{
+    const el=document.createElement('div');el.className='task-item'+(i===S.idx?' current':'');
+    el.innerHTML=`<span class="t-dot"></span><span style="flex:1">${esc(t)}</span><button class="t-del" data-i="${i}">✕</button>`;
+    list.appendChild(el);
+  });
+  list.querySelectorAll('.t-del').forEach(b=>b.addEventListener('click',e=>{
+    const i=parseInt(e.currentTarget.dataset.i);S.tasks.splice(i,1);
+    if(S.idx>=S.tasks.length)S.idx=Math.max(0,S.tasks.length-1);
+    save();render();renderTasksDrawer();
+  }));
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ═══ ACTIONS ═════════════════════════════════════════════════
+function addTask(){
+  const val=document.getElementById('task-input').value.trim();if(!val)return;
+  S.tasks.push(val);S.chainTotal++;document.getElementById('task-input').value='';
+  save();render();const b=document.getElementById('btn-add');
+  b.style.transform='scale(0.82)';setTimeout(()=>b.style.transform='',120);
+}
+function completeTask(){
+  if(!S.tasks.length)return;
+  const prevLvl=getLevel(S.xp),prevXP=S.xp;
+  let gained=10;
+  if(S.dayStreak>0)gained+=Math.min(S.dayStreak*2,20);
+  if(S.doneToday>0&&(S.doneToday+1)%5===0)gained+=25;
+  S.xp+=gained;S.doneToday++;S.totalDone++;S.chainDone++;
+  S.hunger=Math.min(100,S.hunger+15);S.happy=Math.min(100,S.happy+10);
+  const isFullChain=S.chainDone>=S.chainTotal&&S.chainTotal>0;
+  if(isFullChain){S.xp+=50;S.happy=Math.min(100,S.happy+20);launchConfetti();showFeedback('⛓ Chain complete! +50 xp!');}
+  else showFeedback(gained);
+  checkUnlocks(prevXP);
+  if(getLevel(S.xp)>prevLvl)showLevelUp(getLevel(S.xp));
+  S.tasks.splice(S.idx,1);if(S.idx>=S.tasks.length)S.idx=0;
+  save();triggerPetAnim('celebrate');animTransition('done',render);maybeShowTip();
+}
+function skipTask(){
+  if(S.tasks.length<2)return;
+  const t=S.tasks.splice(S.idx,1)[0];S.tasks.push(t);
+  if(S.idx>=S.tasks.length)S.idx=0;save();animTransition('skip',render);
+}
+function checkUnlocks(prevXP){
+  ITEMS.forEach(item=>{
+    if(!S.unlocked.includes(item.id)&&prevXP<item.xp&&S.xp>=item.xp){S.unlocked.push(item.id);showUnlockToast(item);}
+  });
+}
+
+// ═══ ANIMATIONS ══════════════════════════════════════════════
+function animTransition(type,cb){
+  const card=document.getElementById('task-card');
+  const out=type==='done'?'anim-out-l':'anim-out-r';
+  const inp=type==='done'?'anim-in-r':'anim-in-l';
+  card.classList.add(out);
+  setTimeout(()=>{card.classList.remove(out);cb();if(S.tasks.length){card.classList.add(inp);setTimeout(()=>card.classList.remove(inp),280);}},230);
+}
+const MSGS=['Nice.','Keep going.','Boom!','Yes!','Crushed it.','One down.','💪','Momentum.'];
+let fbT;
+function showFeedback(val){
+  const el=document.getElementById('feedback');
+  el.textContent=typeof val==='number'?`+${val} XP · ${MSGS[~~(Math.random()*MSGS.length)]}`:val;
+  el.classList.add('show');clearTimeout(fbT);fbT=setTimeout(()=>el.classList.remove('show'),1200);
+}
+function showLevelUp(lvl){
+  const el=document.getElementById('levelup');el.textContent=`🚀 Level ${lvl}!`;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+function showUnlockToast(item){
+  const el=document.getElementById('unlock-toast');el.textContent=`${item.emoji} Unlocked: ${item.name}!`;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ═══ CONFETTI ════════════════════════════════════════════════
+const cc=document.getElementById('confetti-canvas'),cctx=cc.getContext('2d');
+let parts=[],craf;
+function launchConfetti(){
+  cc.width=window.innerWidth;cc.height=window.innerHeight;parts=[];
+  const cols=['#ff8906','#5ece8b','#b388ff','#4fc3f7','#f25f4c','#ffd600'];
+  for(let i=0;i<100;i++)parts.push({x:Math.random()*cc.width,y:-10,r:Math.random()*6+3,d:Math.random()*60+20,color:cols[~~(Math.random()*cols.length)],ta:0,ts:Math.random()*.1+.05,sp:Math.random()*3+2,sh:Math.random()>.5?'r':'c'});
+  cancelAnimationFrame(craf);drawConf();
+}
+function drawConf(){
+  cctx.clearRect(0,0,cc.width,cc.height);let alive=false;
+  parts.forEach(p=>{
+    cctx.save();cctx.translate(p.x,p.y);cctx.rotate(p.ta);cctx.fillStyle=p.color;
+    if(p.sh==='c'){cctx.beginPath();cctx.arc(0,0,p.r,0,Math.PI*2);cctx.fill();}else cctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+    cctx.restore();p.y+=p.sp;p.x+=Math.sin(p.d)*1.5;p.ta+=p.ts;p.d+=.02;if(p.y<cc.height+20)alive=true;
+  });
+  if(alive)craf=requestAnimationFrame(drawConf);else cctx.clearRect(0,0,cc.width,cc.height);
+}
+
+// ═══ TIP ═════════════════════════════════════════════════════
+let tipT;
+function maybeShowTip(){
+  if(S.totalDone>0&&S.totalDone%10===0){clearTimeout(tipT);tipT=setTimeout(()=>{document.getElementById('tip-nudge').classList.add('show');tipT=setTimeout(()=>document.getElementById('tip-nudge').classList.remove('show'),8000);},1500);}
+}
+document.getElementById('tip-close').addEventListener('click',()=>{clearTimeout(tipT);document.getElementById('tip-nudge').classList.remove('show');});
+
+// ═══ DRAWERS ═════════════════════════════════════════════════
+function makeDrawer(openId,drawerId,overlayId,onOpen){
+  const drawer=document.getElementById(drawerId),overlay=document.getElementById(overlayId);
+  function open(){if(onOpen)onOpen();drawer.classList.add('open');overlay.classList.add('show');}
+  function close(){drawer.classList.remove('open');overlay.classList.remove('show');}
+  if(openId)document.getElementById(openId).addEventListener('click',open);
+  overlay.addEventListener('click',close);
+  let ty=0;
+  drawer.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+  drawer.addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-ty>60)close();},{passive:true});
+  return{open,close};
+}
+const menuDr=makeDrawer('btn-menu','menu-drawer','menu-overlay',()=>{
+  document.getElementById('ms-done').textContent=S.doneToday;
+  document.getElementById('ms-streak').textContent=S.dayStreak;
+  document.getElementById('ms-total').textContent=S.totalDone;
+});
+const tasksDr=makeDrawer(null,'tasks-drawer','tasks-overlay',renderTasksDrawer);
+document.getElementById('btn-open-tasks').addEventListener('click',()=>{menuDr.close();renderTasksDrawer();tasksDr.open();});
+document.getElementById('btn-reset-stats').addEventListener('click',()=>{
+  if(!confirm('Reset XP, pet stats, and items? Tasks are kept.'))return;
+  S.xp=0;S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.hunger=70;S.happy=60;S.energy=80;S.unlocked=[];S.equipped=null;S.chainDone=0;S.chainTotal=0;save();render();menuDr.close();
+});
+document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;localStorage.clear();location.reload();});
+
+// ═══ SWIPE & EVENTS ══════════════════════════════════════════
+let tx=0,ty2=0,tA=false;
+const card=document.getElementById('task-card');
+card.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty2=e.touches[0].clientY;tA=true;card.classList.add('pressing');},{passive:true});
+card.addEventListener('touchend',e=>{card.classList.remove('pressing');if(!tA)return;tA=false;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty2;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){if(dx>0)completeTask();else skipTask();}},{passive:true});
+card.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientY-ty2)>20){tA=false;card.classList.remove('pressing');}},{passive:true});
+document.getElementById('btn-done').addEventListener('click',completeTask);
+document.getElementById('btn-skip').addEventListener('click',skipTask);
+document.getElementById('btn-add').addEventListener('click',addTask);
+document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
+document.querySelectorAll('.btn,#btn-menu,.menu-btn,.ob-btn').forEach(b=>b.addEventListener('touchend',e=>e.preventDefault()));
+
+// ═══ INIT ════════════════════════════════════════════════════
+initOnboarding();
+if(S.petType&&S.petName)showMain();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
