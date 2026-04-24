@@ -160,6 +160,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #auth-inner{width:100%;padding:52px 28px;padding-bottom:max(40px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;min-height:100%;}
 .auth-error{color:var(--accent2);font-size:13px;margin-bottom:16px;text-align:center;min-height:18px;}
 #auth-toggle{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;margin-top:14px;font-family:'DM Sans',sans-serif;text-decoration:underline;}
+#install-nudge{position:fixed;bottom:110px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid rgba(79,195,247,0.3);border-radius:100px;display:flex;align-items:center;gap:10px;padding:10px 8px 10px 18px;font-size:13px;color:var(--dim);white-space:nowrap;box-shadow:var(--shadow);opacity:0;pointer-events:none;z-index:400;transition:opacity 0.4s,transform 0.4s;max-width:calc(100vw - 48px);}
+#install-nudge.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:all;}
+#install-nudge-btn{color:var(--blue);background:rgba(79,195,247,0.12);padding:6px 14px;border-radius:100px;border:none;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#install-nudge-close{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;}
+.ios-install-tip{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;font-size:13px;color:var(--dim);line-height:1.6;}
 .ps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;}
 .ps-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:8px 4px 8px;cursor:pointer;transition:border-color 0.18s,background 0.18s;-webkit-tap-highlight-color:transparent;overflow:hidden;}
 .ps-card:active{transform:scale(0.93);}
@@ -292,6 +297,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <button class="menu-btn" id="btn-reset-stats">↺ &nbsp;Reset stats &amp; pet</button>
     <button class="menu-btn danger" id="btn-reset-all">✕ &nbsp;Clear everything</button>
   </div>
+  <div class="menu-section" id="install-section" style="display:none">
+    <div class="menu-label">App</div>
+    <button class="menu-btn" id="btn-install-app">📲 &nbsp;Install App</button>
+  </div>
+  <div class="menu-section" id="ios-install-section" style="display:none">
+    <div class="menu-label">App</div>
+    <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
+  </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
     <button class="menu-btn danger" id="btn-logout">→ &nbsp;Log out</button>
@@ -313,6 +326,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <span>enjoying OneBuddy? ☕</span>
   <a href="https://ko-fi.com/mp0914" target="_blank" rel="noopener">☕ tip jar</a>
   <button id="tip-close">✕</button>
+</div>
+<div id="install-nudge">
+  <span>📲 Add OneBuddy to your homescreen!</span>
+  <button id="install-nudge-btn">Install</button>
+  <button id="install-nudge-close">✕</button>
 </div>
 <canvas id="confetti-canvas"></canvas>
 
@@ -1272,6 +1290,54 @@ document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
 document.getElementById('btn-add').addEventListener('click',addTask);
 document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
+
+// ═══ PWA INSTALL ══════════════════════════════════════════════
+(()=>{
+  const isStandalone=window.matchMedia('(display-mode:standalone)').matches||navigator.standalone===true;
+  if(isStandalone)return; // already installed — hide everything
+  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  if(isIOS){
+    // iOS can't use beforeinstallprompt — show manual tip in menu
+    document.getElementById('ios-install-section').style.display='';
+    return;
+  }
+  let deferredInstall=null;
+  let nudgeTimer;
+  const $installSection=document.getElementById('install-section');
+  const $nudge=document.getElementById('install-nudge');
+  async function triggerInstall(){
+    if(!deferredInstall)return;
+    deferredInstall.prompt();
+    const{outcome}=await deferredInstall.userChoice;
+    deferredInstall=null;
+    if(outcome==='accepted'){
+      $installSection.style.display='none';
+      $nudge.classList.remove('show');
+    }
+  }
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    deferredInstall=e;
+    $installSection.style.display='';
+    if(!sessionStorage.getItem('install-nudge-seen')){
+      clearTimeout(nudgeTimer);
+      nudgeTimer=setTimeout(()=>$nudge.classList.add('show'),5000);
+    }
+  });
+  window.addEventListener('appinstalled',()=>{
+    deferredInstall=null;
+    $installSection.style.display='none';
+    $nudge.classList.remove('show');
+    clearTimeout(nudgeTimer);
+  });
+  document.getElementById('btn-install-app').addEventListener('click',()=>{menuDr.close();triggerInstall();});
+  document.getElementById('install-nudge-btn').addEventListener('click',()=>{$nudge.classList.remove('show');triggerInstall();});
+  document.getElementById('install-nudge-close').addEventListener('click',()=>{
+    $nudge.classList.remove('show');
+    sessionStorage.setItem('install-nudge-seen','1');
+    clearTimeout(nudgeTimer);
+  });
+})();
 
 // ═══ PET SWITCHER ════════════════════════════════════════════
 const petsDr=makeDrawer(null,'pets-drawer','pets-overlay',renderPetsSwitcher);
