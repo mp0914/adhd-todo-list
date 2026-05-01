@@ -149,7 +149,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .btn:disabled{opacity:0.25;cursor:default;}
 #btn-done{background:var(--green);color:#0a1f12;font-weight:700;}
 #btn-skip{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
-#bottom-bar{display:flex;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
+#bottom-bar{display:flex;flex-direction:column;gap:5px;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
+.add-fmt-bar{display:flex;gap:5px;}
+.add-fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;}
+.add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
+.add-fmt-btn:active{opacity:0.6;}
 #add-row{flex:1;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 5px 5px 14px;align-items:center;}
 #task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:40px;caret-color:var(--accent);}
 #task-input::placeholder{color:var(--muted);}
@@ -320,6 +324,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <button class="btn" id="btn-skip" disabled>⏭ Skip</button>
   </div>
   <div id="bottom-bar">
+    <div class="add-fmt-bar" id="main-fmt-bar">
+      <button class="add-fmt-btn" data-fmt="cb">☑ checkbox</button>
+      <button class="add-fmt-btn" data-fmt="bullet">• bullet</button>
+      <button class="add-fmt-btn" data-fmt="num">1. list</button>
+    </div>
     <div id="add-row">
       <input id="task-input" type="text" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false"/>
       <button class="btn" id="btn-add">+</button>
@@ -391,8 +400,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="drawer-title" id="tasks-drawer-title">All Tasks</div>
   <div id="tasks-list"></div>
   <div id="drawer-add-row">
-    <input id="drawer-task-input" type="text" placeholder="Add a task…" autocomplete="off" autocorrect="off" spellcheck="false"/>
-    <button id="drawer-add-btn">+</button>
+    <div class="add-fmt-bar" id="drawer-fmt-bar" style="margin-bottom:8px;">
+      <button class="add-fmt-btn" data-fmt="cb">☑ checkbox</button>
+      <button class="add-fmt-btn" data-fmt="bullet">• bullet</button>
+      <button class="add-fmt-btn" data-fmt="num">1. list</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input id="drawer-task-input" type="text" placeholder="Add a task…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button id="drawer-add-btn">+</button>
+    </div>
   </div>
 </div>
 <div id="feedback"></div>
@@ -1517,10 +1533,33 @@ function renderTasksDrawer(){
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+// ═══ QUICK FORMAT (main + drawer inputs) ═════════════════════
+const FMT_PREFIX={cb:'- [ ] ',bullet:'- ',num:'1. '};
+let _fmtMain=null,_fmtDrawer=null;
+function toggleInputFmt(inputId,barId,type,currentRef,setRef){
+  const inp=document.getElementById(inputId);
+  const next=currentRef===type?null:type;
+  // swap prefix in input value
+  const oldPfx=currentRef?FMT_PREFIX[currentRef]:'';
+  const newPfx=next?FMT_PREFIX[next]:'';
+  let v=inp.value;
+  if(oldPfx&&v.startsWith(oldPfx))v=v.slice(oldPfx.length);
+  inp.value=newPfx+v;
+  // update button highlights
+  document.querySelectorAll(`#${barId} .add-fmt-btn`).forEach(b=>{
+    b.classList.toggle('active',b.dataset.fmt===next);
+  });
+  setRef(next);
+  inp.focus();
+  inp.setSelectionRange(inp.value.length,inp.value.length);
+}
 // ═══ ACTIONS ═════════════════════════════════════════════════
 function addTask(){
-  const val=document.getElementById('task-input').value.trim();if(!val)return;
-  S.tasks.push(val);S.chainTotal++;document.getElementById('task-input').value='';
+  const inp=document.getElementById('task-input');
+  const val=inp.value.trim();if(!val)return;
+  S.tasks.push(val);S.chainTotal++;
+  // keep format active for batch-adding; reset input to just the prefix
+  inp.value=_fmtMain?FMT_PREFIX[_fmtMain]:'';
   save();render();const b=document.getElementById('btn-add');
   b.style.transform='scale(0.82)';setTimeout(()=>b.style.transform='',120);
 }
@@ -1641,11 +1680,18 @@ document.getElementById('btn-open-tasks').addEventListener('click',()=>{menuDr.c
 function drawerAddTask(){
   const inp=document.getElementById('drawer-task-input');
   const val=inp.value.trim();if(!val)return;
-  S.tasks.push(val);S.chainTotal++;inp.value='';
+  S.tasks.push(val);S.chainTotal++;
+  inp.value=_fmtDrawer?FMT_PREFIX[_fmtDrawer]:'';
   save();render();renderTasksDrawer();
 }
 document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask);
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
+document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>{
+  toggleInputFmt('task-input','main-fmt-bar',b.dataset.fmt,_fmtMain,v=>_fmtMain=v);
+}));
+document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>{
+  toggleInputFmt('drawer-task-input','drawer-fmt-bar',b.dataset.fmt,_fmtDrawer,v=>_fmtDrawer=v);
+}));
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
   const p=AP();
