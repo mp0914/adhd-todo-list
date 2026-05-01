@@ -419,6 +419,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <button class="fmt-btn" id="fmt-cb">☑ checkbox</button>
     <button class="fmt-btn" id="fmt-bullet">• bullet</button>
     <button class="fmt-btn" id="fmt-num">1. list</button>
+    <button class="fmt-btn" id="fmt-br" title="Insert line break" style="margin-left:auto;">↵ break</button>
   </div>
   <div id="note-modal-body"></div>
   <div id="note-modal-foot"></div>
@@ -1233,6 +1234,12 @@ function renderNoteModalBody(){
     document.getElementById('fmt-cb').onclick=()=>toggleFmt('- [ ] ');
     document.getElementById('fmt-bullet').onclick=()=>toggleFmt('- ');
     document.getElementById('fmt-num').onclick=()=>toggleFmt('1. ');
+    document.getElementById('fmt-br').onclick=()=>{
+      const ta=document.getElementById('note-modal-edit-area');if(!ta)return;
+      const s=ta.selectionStart,e=ta.selectionEnd;
+      ta.value=ta.value.slice(0,s)+'\n'+ta.value.slice(e);
+      ta.selectionStart=ta.selectionEnd=s+1;ta.focus();
+    };
   }else{
     $body.innerHTML=`<div class="note-view">${parseNote(text)}</div>`;
     $body.querySelectorAll('.note-cb-row').forEach(row=>{
