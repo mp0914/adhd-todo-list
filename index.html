@@ -910,9 +910,33 @@ async function apiAuth(mode,email,password){
   if(!r.ok)throw new Error(data.error||'Request failed');
   return data.token;
 }
+// Parse JWT payload without verifying (client-side expiry peek only)
+function jwtPayload(token){
+  try{return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch{return null;}
+}
+// Silently refresh token if it expires within 30 days
+async function maybeRefreshToken(){
+  if(!authToken)return;
+  const p=jwtPayload(authToken);
+  if(!p||!p.exp)return; // old no-expiry token — still valid, refresh it
+  const secsLeft=p.exp-Math.floor(Date.now()/1000);
+  if(secsLeft>30*24*60*60)return; // more than 30 days left — no action needed
+  try{
+    const r=await fetch('/api/auth/refresh',{method:'POST',headers:{'Authorization':'Bearer '+authToken}});
+    if(r.ok){const d=await r.json();authToken=d.token;localStorage.setItem(TOKEN_KEY,authToken);}
+  }catch{}
+}
 async function loadState(){
   const r=await fetch('/api/state',{headers:{'Authorization':'Bearer '+authToken}});
-  if(r.status===401){authToken=null;localStorage.removeItem(TOKEN_KEY);return null;}
+  // Only wipe the token for definitive auth rejections, not server errors (5xx / network)
+  if(r.status===401){
+    const body=await r.json().catch(()=>({}));
+    if(body.error==='Unauthorized'||body.error==='Invalid or expired token'){
+      authToken=null;localStorage.removeItem(TOKEN_KEY);
+    }
+    return null;
+  }
+  if(!r.ok)return null; // server error — keep token, try again later
   return r.json();
 }
 function getLevel(xp){return Math.floor(xp/100)+1;}
@@ -1393,7 +1417,9 @@ initOnboarding();
 initAuth();
 (async()=>{
   if(authToken){
+    await maybeRefreshToken();
     const state=await loadState();
+    if(!authToken){showAuthScreen();return;} // genuinely invalid
     if(state){applyState(state);applyDayRollover();}
     if(S.activePet&&AP().name)showMain();else showOnboard();
   }else{
