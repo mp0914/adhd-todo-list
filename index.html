@@ -322,7 +322,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task</div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;opacity:0.35;font-size:9px;letter-spacing:0">v5</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -1939,7 +1939,15 @@ initAuth();
     showAuthScreen();
   }
 })();
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    // Reload page when SW sends update notification — ensures fresh HTML on all platforms
+    navigator.serviceWorker.addEventListener('message',e=>{
+      if(e.data&&e.data.type==='SW_UPDATED')location.reload();
+    });
+  });
+}
 </script>
 </body>
 </html>
