@@ -1201,15 +1201,15 @@ function renderNoteModalBody(){
     $body.innerHTML=`<textarea id="note-modal-edit-area" placeholder="What needs doing?"></textarea>
       <div class="note-format-hint">
         <code>- [ ] item</code> checkbox &nbsp;·&nbsp; <code>- item</code> bullet &nbsp;·&nbsp; <code>1. item</code> numbered<br>
-        Use <strong>Shift+Enter</strong> for new lines, Enter to save
+        <strong>Enter</strong> continues list · empty list line exits · <strong>Shift+Enter</strong> plain line
       </div>`;
     const ta=document.getElementById('note-modal-edit-area');
     ta.value=text;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
-    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveNoteModal();}});
-    // format toolbar buttons
-    document.getElementById('fmt-cb').onclick=()=>insertFmt('- [ ] ');
-    document.getElementById('fmt-bullet').onclick=()=>insertFmt('- ');
-    document.getElementById('fmt-num').onclick=()=>insertFmt('1. ');
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter')handleNoteEnter(e,ta);});
+    // format toolbar buttons — toggle on/off
+    document.getElementById('fmt-cb').onclick=()=>toggleFmt('- [ ] ');
+    document.getElementById('fmt-bullet').onclick=()=>toggleFmt('- ');
+    document.getElementById('fmt-num').onclick=()=>toggleFmt('1. ');
   }else{
     $body.innerHTML=`<div class="note-view">${parseNote(text)}</div>`;
     $body.querySelectorAll('.note-cb-row').forEach(row=>{
@@ -1239,12 +1239,70 @@ function saveNoteModal(){
   if(val){S.tasks[S.idx]=val;}
   _nmEdit=false;save();renderTask();renderNoteModal();
 }
-function insertFmt(prefix){
+// Returns the raw list prefix string at the start of a line, or null
+function getListPrefix(line){
+  const m=line.match(/^(- \[[ xX]\] |[-*] |\d+\. )/);
+  return m?m[1]:null;
+}
+// Returns the type of a list prefix: 'cb' | 'bullet' | 'num' | null
+function listPrefixType(p){
+  if(!p)return null;
+  if(/^- \[[ xX]\] /.test(p))return'cb';
+  if(/^[-*] /.test(p))return'bullet';
+  if(/^\d+\. /.test(p))return'num';
+  return null;
+}
+// Smart Enter: continue list or exit on empty item
+function handleNoteEnter(e,ta){
+  if(e.shiftKey)return; // plain newline — let browser handle
+  const s=ta.selectionStart;
+  const before=ta.value.slice(0,s);
+  const after=ta.value.slice(s);
+  const lineStart=before.lastIndexOf('\n')+1;
+  const lineText=before.slice(lineStart);
+  const prefix=getListPrefix(lineText);
+  if(!prefix)return; // no list context — normal Enter
+  e.preventDefault();
+  const content=lineText.slice(prefix.length);
+  if(!content.trim()){
+    // Empty list line → exit list: remove prefix, plain cursor
+    ta.value=before.slice(0,lineStart)+after;
+    ta.selectionStart=ta.selectionEnd=lineStart;
+    return;
+  }
+  // Continue list with next appropriate prefix
+  let next;
+  if(listPrefixType(prefix)==='cb') next='- [ ] ';
+  else if(listPrefixType(prefix)==='bullet') next=prefix; // preserve - or *
+  else next=(parseInt(prefix)+1)+'. '; // increment number
+  const ins='\n'+next;
+  ta.value=before+ins+after;
+  ta.selectionStart=ta.selectionEnd=s+ins.length;
+}
+// Toggle format button: same type → remove, different type → replace, none → add
+function toggleFmt(prefix){
   const ta=document.getElementById('note-modal-edit-area');if(!ta)return;
   const s=ta.selectionStart;
   const lineStart=ta.value.lastIndexOf('\n',s-1)+1;
-  ta.value=ta.value.slice(0,lineStart)+prefix+ta.value.slice(lineStart);
-  ta.selectionStart=ta.selectionEnd=s+prefix.length;
+  const lineEndIdx=ta.value.indexOf('\n',s);
+  const lineEnd=lineEndIdx===-1?ta.value.length:lineEndIdx;
+  const lineText=ta.value.slice(lineStart,lineEnd);
+  const cur=getListPrefix(lineText);
+  const curType=listPrefixType(cur);
+  const newType=listPrefixType(prefix);
+  if(curType===newType&&cur){
+    // Same type → remove (toggle off)
+    ta.value=ta.value.slice(0,lineStart)+lineText.slice(cur.length)+ta.value.slice(lineEnd);
+    ta.selectionStart=ta.selectionEnd=Math.max(lineStart,s-cur.length);
+  }else if(cur){
+    // Different type → replace prefix
+    ta.value=ta.value.slice(0,lineStart)+prefix+lineText.slice(cur.length)+ta.value.slice(lineEnd);
+    ta.selectionStart=ta.selectionEnd=lineStart+prefix.length+Math.max(0,s-lineStart-cur.length);
+  }else{
+    // No prefix → add
+    ta.value=ta.value.slice(0,lineStart)+prefix+ta.value.slice(lineStart);
+    ta.selectionStart=ta.selectionEnd=s+prefix.length;
+  }
   ta.focus();
 }
 
