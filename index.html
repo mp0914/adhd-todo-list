@@ -84,10 +84,40 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #focus-label{flex-shrink:0;padding:10px 22px 6px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;position:relative;z-index:10;}
 #task-area{flex:1;display:flex;flex-direction:column;padding:0 22px;position:relative;z-index:10;min-height:0;}
 #task-count{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.05em;}
-#task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:24px 22px;min-height:96px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;}
+#task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;min-height:88px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;cursor:pointer;overflow:hidden;}
 #task-card.pressing{transform:scale(0.97);box-shadow:0 4px 16px rgba(0,0,0,0.4);}
-#task-text{font-family:'Pixelify Sans',monospace;font-size:clamp(17px,5vw,23px);color:var(--text);line-height:1.4;letter-spacing:0.3px;}
-#task-text.empty{color:var(--muted);font-size:15px;font-family:'DM Sans',sans-serif;font-style:italic;}
+#task-card.rich-card{align-items:flex-start;justify-content:flex-start;text-align:left;}
+#task-text{font-family:'Pixelify Sans',monospace;font-size:clamp(16px,5vw,22px);color:var(--text);line-height:1.4;letter-spacing:0.3px;overflow-y:auto;max-height:130px;width:100%;-webkit-overflow-scrolling:touch;}
+#task-text.empty{color:var(--muted);font-size:15px;font-family:'DM Sans',sans-serif;font-style:italic;font-weight:400;letter-spacing:0;}
+#task-text.rich{font-family:'DM Sans',sans-serif;font-size:14px;letter-spacing:0;line-height:1.55;}
+/* Note formatting */
+.note-p{margin-bottom:2px;word-break:break-word;}
+.note-gap{height:6px;display:block;}
+.note-bullet{display:flex;gap:8px;margin-bottom:3px;}
+.note-bullet-dot{color:var(--accent);flex-shrink:0;font-weight:700;line-height:1.55;}
+.note-num{display:flex;gap:6px;margin-bottom:3px;}
+.note-num-idx{color:var(--accent);font-weight:700;flex-shrink:0;min-width:20px;line-height:1.55;}
+.note-cb-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+.note-cb{width:17px;height:17px;border-radius:4px;border:2px solid rgba(255,255,255,0.22);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:background 0.15s,border-color 0.15s;}
+.note-cb.done{background:var(--green);border-color:var(--green);}
+.note-cb.done::after{content:'✓';font-size:10px;color:#0a1f12;font-weight:800;line-height:1;}
+.note-cb-txt{flex:1;word-break:break-word;line-height:1.55;}
+.note-cb-txt.done{text-decoration:line-through;opacity:0.45;}
+/* Note modal */
+#note-overlay{z-index:500;}
+#note-modal{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:480px;background:var(--bg);z-index:550;display:flex;flex-direction:column;transform:translateX(-50%) translateY(100%);transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
+#note-modal.open{transform:translateX(-50%) translateY(0);}
+#note-modal-head{display:flex;align-items:center;gap:10px;padding:14px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+#note-modal-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;flex:1;}
+#note-modal-close{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--dim);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+#note-modal-toolbar{display:flex;gap:6px;padding:8px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.fmt-btn:active{opacity:0.6;}
+#note-modal-body{flex:1;overflow-y:auto;padding:20px 22px;-webkit-overflow-scrolling:touch;}
+#note-modal-edit-area{width:100%;min-height:200px;background:transparent;border:none;outline:none;resize:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.7;caret-color:var(--accent);}
+.note-format-hint{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2.2;}
+.note-format-hint code{background:var(--surface2);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:11px;color:var(--dim);}
+#note-modal-foot{padding:10px 20px;padding-bottom:max(18px,env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;}
 #swipe-hint{font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:8px 0 4px;letter-spacing:0.05em;flex-shrink:0;}
 #actions{display:flex;gap:10px;padding:10px 22px 8px;flex-shrink:0;position:relative;z-index:10;}
 .btn{flex:1;min-height:52px;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform 0.12s,opacity 0.12s;-webkit-tap-highlight-color:transparent;user-select:none;letter-spacing:0.02em;}
@@ -334,6 +364,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <button id="install-nudge-close">✕</button>
 </div>
 <canvas id="confetti-canvas"></canvas>
+<div class="overlay" id="note-overlay"></div>
+<div id="note-modal">
+  <div id="note-modal-head">
+    <span id="note-modal-label">current task</span>
+    <button id="note-modal-close">✕</button>
+  </div>
+  <div id="note-modal-toolbar">
+    <button class="fmt-btn" id="fmt-cb">☑ checkbox</button>
+    <button class="fmt-btn" id="fmt-bullet">• bullet</button>
+    <button class="fmt-btn" id="fmt-num">1. list</button>
+  </div>
+  <div id="note-modal-body"></div>
+  <div id="note-modal-foot"></div>
+</div>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -1077,6 +1121,109 @@ function showMain(){
   renderPet();render();$wrap.classList.add('idle');
 }
 
+// ═══ NOTE PARSING & MODAL ════════════════════════════════════
+function isRichNote(text){
+  return text.includes('\n')||/^(?:- ?)?\[[ xX]\]|^[-*] |\d+\. /.test(text.trim());
+}
+function parseNote(text){
+  if(!text)return'';
+  return text.split('\n').map((line,i)=>{
+    // Checkbox: "- [ ] …" or "[ ] …" (checked with x/X)
+    const cb=line.match(/^(?:- ?)?\[([ xX])\] ?(.*)$/);
+    if(cb){const done=cb[1].toLowerCase()==='x';
+      return`<div class="note-cb-row" data-cb="${i}"><div class="note-cb${done?' done':''}"></div><div class="note-cb-txt${done?' done':''}">${esc(cb[2])}</div></div>`;}
+    // Bullet: "- …" or "* …"
+    const bul=line.match(/^[-*] (.*)$/);
+    if(bul)return`<div class="note-bullet"><span class="note-bullet-dot">•</span><span>${esc(bul[1])}</span></div>`;
+    // Numbered: "1. …"
+    const num=line.match(/^(\d+)\. (.*)$/);
+    if(num)return`<div class="note-num"><span class="note-num-idx">${num[1]}.</span><span>${esc(num[2])}</span></div>`;
+    // Empty line → gap
+    if(!line.trim())return'<span class="note-gap"></span>';
+    return`<div class="note-p">${esc(line)}</div>`;
+  }).join('');
+}
+function toggleCheckbox(taskIdx,lineIdx){
+  const lines=S.tasks[taskIdx].split('\n');
+  lines[lineIdx]=lines[lineIdx].replace(/^((?:- ?)?\[)([ xX])(\] ?)(.*)$/,(_,a,b,c,d)=>a+(b===' '?'x':' ')+c+d);
+  S.tasks[taskIdx]=lines.join('\n');
+  save();renderTask();
+  if(document.getElementById('note-modal').classList.contains('open'))renderNoteModalBody();
+}
+// ── Note Modal ──
+let _nmEdit=false;
+function openNoteModal(editMode=false){
+  if(!S.tasks.length)return;
+  _nmEdit=editMode;
+  document.getElementById('note-overlay').classList.add('show');
+  document.getElementById('note-modal').classList.add('open');
+  renderNoteModal();
+}
+function closeNoteModal(){
+  document.getElementById('note-overlay').classList.remove('show');
+  document.getElementById('note-modal').classList.remove('open');
+  _nmEdit=false;
+}
+function renderNoteModal(){
+  document.getElementById('note-modal-label').textContent=`task ${S.idx+1} of ${S.tasks.length}`;
+  document.getElementById('note-modal-toolbar').style.display=_nmEdit?'flex':'none';
+  renderNoteModalBody();
+  renderNoteModalFoot();
+}
+function renderNoteModalBody(){
+  const text=S.tasks[S.idx]||'';
+  const $body=document.getElementById('note-modal-body');
+  if(_nmEdit){
+    $body.innerHTML=`<textarea id="note-modal-edit-area" placeholder="What needs doing?"></textarea>
+      <div class="note-format-hint">
+        <code>- [ ] item</code> checkbox &nbsp;·&nbsp; <code>- item</code> bullet &nbsp;·&nbsp; <code>1. item</code> numbered<br>
+        Use <strong>Shift+Enter</strong> for new lines, Enter to save
+      </div>`;
+    const ta=document.getElementById('note-modal-edit-area');
+    ta.value=text;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();saveNoteModal();}});
+    // format toolbar buttons
+    document.getElementById('fmt-cb').onclick=()=>insertFmt('- [ ] ');
+    document.getElementById('fmt-bullet').onclick=()=>insertFmt('- ');
+    document.getElementById('fmt-num').onclick=()=>insertFmt('1. ');
+  }else{
+    $body.innerHTML=`<div class="note-view">${parseNote(text)}</div>`;
+    $body.querySelectorAll('.note-cb-row').forEach(row=>{
+      row.addEventListener('click',()=>{toggleCheckbox(S.idx,parseInt(row.dataset.cb));});
+    });
+  }
+}
+function renderNoteModalFoot(){
+  const $foot=document.getElementById('note-modal-foot');
+  if(_nmEdit){
+    $foot.innerHTML=`<button class="btn" id="nm-cancel" style="background:var(--surface2);color:var(--dim);border:1px solid var(--border);">Cancel</button>
+      <button class="btn" id="nm-save" style="background:var(--accent);color:#1a0a00;font-weight:700;">💾 Save</button>`;
+    document.getElementById('nm-cancel').addEventListener('click',()=>{_nmEdit=false;renderNoteModal();});
+    document.getElementById('nm-save').addEventListener('click',saveNoteModal);
+  }else{
+    $foot.innerHTML=`<button class="btn" id="nm-edit" style="background:var(--surface2);color:var(--dim);border:1px solid var(--border);flex:0 0 auto;padding:0 18px;">✎ Edit</button>
+      <div style="flex:1"></div>
+      ${S.tasks.length>1?`<button class="btn" id="nm-skip" style="background:var(--surface2);color:var(--dim);border:1px solid var(--border);flex:0 0 auto;padding:0 18px;">⏭</button>`:''}
+      <button class="btn" id="nm-done" style="background:var(--green);color:#0a1f12;font-weight:700;flex:0 0 auto;padding:0 24px;">✓ Done</button>`;
+    document.getElementById('nm-edit').addEventListener('click',()=>{_nmEdit=true;renderNoteModal();});
+    document.getElementById('nm-done').addEventListener('click',()=>{closeNoteModal();completeTask();});
+    document.getElementById('nm-skip')?.addEventListener('click',()=>{closeNoteModal();skipTask();});
+  }
+}
+function saveNoteModal(){
+  const val=document.getElementById('note-modal-edit-area')?.value.trim();
+  if(val){S.tasks[S.idx]=val;}
+  _nmEdit=false;save();renderTask();renderNoteModal();
+}
+function insertFmt(prefix){
+  const ta=document.getElementById('note-modal-edit-area');if(!ta)return;
+  const s=ta.selectionStart;
+  const lineStart=ta.value.lastIndexOf('\n',s-1)+1;
+  ta.value=ta.value.slice(0,lineStart)+prefix+ta.value.slice(lineStart);
+  ta.selectionStart=ta.selectionEnd=s+prefix.length;
+  ta.focus();
+}
+
 // ═══ RENDER ══════════════════════════════════════════════════
 function render(){
   if(!S.activePet)return;
@@ -1130,12 +1277,26 @@ function renderChain(){
 }
 function renderTask(){
   const tasks=S.tasks,$t=document.getElementById('task-text'),
-    $c=document.getElementById('task-count'),
+    $c=document.getElementById('task-count'),$card=document.getElementById('task-card'),
     $d=document.getElementById('btn-done'),$s=document.getElementById('btn-skip');
-  if(!tasks.length){$t.textContent='Add a task below ↓';$t.className='empty';$d.disabled=true;$s.disabled=true;$c.textContent='';return;}
+  if(!tasks.length){
+    $t.textContent='Add a task below ↓';$t.className='empty';
+    $card.classList.remove('rich-card');$d.disabled=true;$s.disabled=true;$c.textContent='';return;
+  }
   if(S.idx>=tasks.length)S.idx=0;
-  $t.textContent=tasks[S.idx];$t.className='';$d.disabled=false;
-  $s.disabled=tasks.length<2;$c.textContent=tasks.length===1?'1 task left':`${tasks.length} tasks`;
+  const text=tasks[S.idx];
+  const rich=isRichNote(text);
+  $card.classList.toggle('rich-card',rich);
+  if(rich){
+    $t.innerHTML=parseNote(text);$t.className='rich';
+    $t.querySelectorAll('.note-cb-row').forEach(row=>row.addEventListener('click',e=>{
+      e.stopPropagation();toggleCheckbox(S.idx,parseInt(row.dataset.cb));
+    }));
+  }else{
+    $t.textContent=text;$t.className='';
+  }
+  $d.disabled=false;$s.disabled=tasks.length<2;
+  $c.textContent=tasks.length===1?'1 task left':`${tasks.length} tasks`;
 }
 function renderTasksDrawer(){
   const list=document.getElementById('tasks-list');list.innerHTML='';
@@ -1144,9 +1305,12 @@ function renderTasksDrawer(){
   if(!S.tasks.length){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:28px 0;font-size:14px;">No tasks yet — add one below</div>';return;}
   S.tasks.forEach((t,i)=>{
     const isCurrent=i===S.idx;
+    // Show only first line in drawer list; indicate more with "…"
+    const firstLine=t.split('\n')[0].replace(/^(?:- ?)?\[[ xX]\] ?|^[-*] |\d+\. /,'').trim();
+    const display=esc(firstLine+(t.includes('\n')?'  …':''));
     const el=document.createElement('div');
     el.className='task-item'+(isCurrent?' current':'');
-    el.innerHTML=`<span class="t-dot"></span><span class="t-text" data-i="${i}">${esc(t)}</span>${isCurrent?'<span class="t-cur-label">now</span>':`<button class="t-focus" data-i="${i}">focus</button>`}<button class="t-del" data-i="${i}">✕</button>`;
+    el.innerHTML=`<span class="t-dot"></span><span class="t-text" data-i="${i}">${display}</span>${isCurrent?'<span class="t-cur-label">now</span>':`<button class="t-focus" data-i="${i}">focus</button>`}<button class="t-del" data-i="${i}">✕</button>`;
     list.appendChild(el);
   });
   list.querySelectorAll('.t-del').forEach(b=>b.addEventListener('click',e=>{
@@ -1158,14 +1322,11 @@ function renderTasksDrawer(){
     S.idx=parseInt(e.currentTarget.dataset.i);
     save();render();renderTasksDrawer();
   }));
+  // Clicking a task in the drawer opens the note modal for full editing
   list.querySelectorAll('.t-text').forEach(span=>span.addEventListener('click',e=>{
     const i=parseInt(e.currentTarget.dataset.i);
-    const inp=document.createElement('input');
-    inp.type='text';inp.value=S.tasks[i];inp.className='t-edit-input';
-    e.currentTarget.replaceWith(inp);inp.focus();inp.select();
-    const commit=()=>{const v=inp.value.trim();if(v)S.tasks[i]=v;save();render();renderTasksDrawer();};
-    inp.addEventListener('blur',commit);
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit();}if(e.key==='Escape')renderTasksDrawer();});
+    S.idx=i;tasksDr.close();
+    openNoteModal(true);
   }));
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1311,6 +1472,13 @@ const card=document.getElementById('task-card');
 card.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty2=e.touches[0].clientY;tA=true;card.classList.add('pressing');},{passive:true});
 card.addEventListener('touchend',e=>{card.classList.remove('pressing');if(!tA)return;tA=false;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty2;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){if(dx>0)completeTask();else skipTask();}},{passive:true});
 card.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientY-ty2)>20){tA=false;card.classList.remove('pressing');}},{passive:true});
+document.getElementById('task-card').addEventListener('click',e=>{
+  if(!S.tasks.length)return;
+  if(e.target.closest('.note-cb-row'))return; // checkbox handled separately
+  openNoteModal();
+});
+document.getElementById('note-modal-close').addEventListener('click',closeNoteModal);
+document.getElementById('note-overlay').addEventListener('click',closeNoteModal);
 document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
 document.getElementById('btn-add').addEventListener('click',addTask);
