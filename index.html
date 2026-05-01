@@ -1307,6 +1307,31 @@ function listPrefixType(p){
   if(/^\d+\. /.test(p))return'num';
   return null;
 }
+// Input-event list continuation — catches mobile keyboards that fire key:'Unidentified'
+// Called after the browser has already inserted a newline
+function handleListContinueInput(ta){
+  const s=ta.selectionStart,val=ta.value;
+  if(s===0||val[s-1]!=='\n')return; // cursor not right after a newline
+  const prevLineEnd=s-1;
+  const prevLineStart=val.lastIndexOf('\n',prevLineEnd-1)+1;
+  const prevLine=val.slice(prevLineStart,prevLineEnd);
+  const prefix=getListPrefix(prevLine);if(!prefix)return;
+  const prevContent=prevLine.slice(prefix.length);
+  if(!prevContent.trim()){
+    // Empty list line — exit: remove the empty prefix line + its newline
+    ta.value=val.slice(0,prevLineStart)+val.slice(s);
+    ta.selectionStart=ta.selectionEnd=prevLineStart;
+  }else{
+    // Continue list
+    let next;
+    if(listPrefixType(prefix)==='cb')next='- [ ] ';
+    else if(listPrefixType(prefix)==='bullet')next=prefix;
+    else next=(parseInt(prefix)+1)+'. ';
+    ta.value=val.slice(0,s)+next+val.slice(s);
+    ta.selectionStart=ta.selectionEnd=s+next.length;
+  }
+  autoResizeTA(ta);
+}
 // Smart Enter: continue list or exit on empty item
 function handleNoteEnter(e,ta){
   if(e.shiftKey)return; // plain newline — let browser handle
@@ -1719,7 +1744,12 @@ document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventL
 // Textarea: smart Enter (continues list) — plain Enter = newline, + = submit
 const _mainTA=document.getElementById('task-input');
 _mainTA.addEventListener('keydown',e=>{if(e.key==='Enter')handleNoteEnter(e,_mainTA);});
-_mainTA.addEventListener('input',()=>autoResizeTA(_mainTA));
+_mainTA.addEventListener('input',e=>{
+  // Mobile keyboards often fire inputType:'insertLineBreak'/'insertParagraph' for Enter
+  // instead of a keydown event — handle list continuation here as a reliable fallback
+  if(e.inputType==='insertLineBreak'||e.inputType==='insertParagraph')handleListContinueInput(_mainTA);
+  autoResizeTA(_mainTA);
+});
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
   const p=AP();
