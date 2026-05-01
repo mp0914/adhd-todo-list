@@ -99,27 +99,25 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 /* Numbered list */
 .note-num{display:flex;gap:6px;margin-bottom:5px;}
 .note-num-idx{color:var(--accent);font-weight:700;flex-shrink:0;min-width:20px;line-height:1.55;}
-/* Checkbox — native input with appearance:none + sibling mark span */
+/* Checkbox — <button> element, most reliable click target on mobile */
 .note-cb-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:7px;-webkit-tap-highlight-color:transparent;user-select:none;}
-.note-cb-box{position:relative;width:20px;height:20px;min-width:20px;flex-shrink:0;margin-top:2px;}
-.note-cb-input{
-  appearance:none;-webkit-appearance:none;
-  position:absolute;inset:0;width:100%;height:100%;margin:0;
+.note-cb-btn{
+  width:20px;height:20px;min-width:20px;flex-shrink:0;margin-top:2px;
   border-radius:5px;border:2px solid rgba(255,255,255,0.35);
-  background:rgba(255,255,255,0.05);cursor:pointer;
+  background:rgba(255,255,255,0.05);cursor:pointer;padding:0;position:relative;
+  -webkit-tap-highlight-color:transparent;
   box-shadow:inset 0 1px 3px rgba(0,0,0,0.25);
   transition:background 0.18s,border-color 0.18s,box-shadow 0.18s;
 }
-.note-cb-input:checked{background:var(--green);border-color:var(--green);box-shadow:0 0 8px rgba(94,206,139,0.4);}
-.note-cb-mark{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;}
-.note-cb-mark::after{
-  content:'';width:10px;height:6px;
+.note-cb-btn:active{opacity:0.75;}
+.note-cb-btn.checked{background:var(--green);border-color:var(--green);box-shadow:0 0 8px rgba(94,206,139,0.4);}
+.note-cb-btn.checked::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:10px;height:6px;
   border-left:2.5px solid #0a1f12;border-bottom:2.5px solid #0a1f12;
-  transform:rotate(-45deg) translateY(-1px);
-  opacity:0;transition:opacity 0.15s;
+  transform:rotate(-45deg);
 }
-.note-cb-input:checked+.note-cb-mark::after{opacity:1;}
-.note-cb-txt{flex:1;word-break:break-word;line-height:1.55;cursor:pointer;}
+.note-cb-txt{flex:1;word-break:break-word;line-height:1.55;}
 .note-cb-txt.done{text-decoration:line-through;opacity:0.4;}
 /* Note modal */
 #note-overlay{z-index:500;}
@@ -133,9 +131,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .fmt-btn:active{opacity:0.6;}
 #note-modal-body{flex:1;overflow-y:auto;padding:20px 22px;-webkit-overflow-scrolling:touch;}
 .note-view{font-size:15px;line-height:1.6;}
-.note-view .note-cb-box{width:22px;height:22px;min-width:22px;}
-.note-view .note-cb-input{border-radius:6px;}
-.note-view .note-cb-mark::after{width:12px;height:7px;}
+.note-view .note-cb-btn{width:22px;height:22px;min-width:22px;}
 #note-modal-edit-area{width:100%;min-height:200px;background:transparent;border:none;outline:none;resize:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.7;caret-color:var(--accent);}
 .note-format-hint{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);line-height:2.2;}
 .note-format-hint code{background:var(--surface2);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:11px;color:var(--dim);}
@@ -1004,6 +1000,8 @@ function applyState(data){
   Object.values(S.pets).forEach(p=>{
     if(typeof p.equipped==='string'||p.equipped===null)p.equipped=p.equipped?[p.equipped]:[];
   });
+  // migrate string tasks → Block[]
+  if(Array.isArray(S.tasks))S.tasks=S.tasks.map(t=>typeof t==='string'?textToBlocks(t):t);
 }
 function applyDayRollover(){
   if(S.lastDate&&S.lastDate!==today){
@@ -1195,33 +1193,44 @@ function showMain(){
   renderPet();render();$wrap.classList.add('idle');
 }
 
-// ═══ NOTE PARSING & MODAL ════════════════════════════════════
-function isRichNote(text){
-  const t=text.trim();
-  return t.includes('\n')||/^(?:- ?)?\[[ xX]\]/.test(t)||/^[-*] /.test(t)||/^\d+\. /.test(t);
-}
-function parseNote(text){
-  if(!text)return'';
-  return text.split('\n').map((line,i)=>{
-    // Checkbox: "- [ ] …" or "[ ] …" (checked with x/X)
+// ═══ BLOCK-BASED DATA MODEL ══════════════════════════════════
+// Each task is Block[] — {t:'text'|'cb'|'ul'|'ol', v:string, c?:boolean, n?:number}
+function textToBlocks(text){
+  if(!text)return[{t:'text',v:''}];
+  return text.split('\n').map(line=>{
     const cb=line.match(/^(?:- ?)?\[([ xX])\] ?(.*)$/);
-    if(cb){const done=cb[1].toLowerCase()==='x';
-      return`<label class="note-cb-row" data-cb="${i}"><span class="note-cb-box"><input type="checkbox" class="note-cb-input"${done?' checked':''}><span class="note-cb-mark"></span></span><span class="note-cb-txt${done?' done':''}">${esc(cb[2])}</span></label>`;}
-    // Bullet: "- …" or "* …"
-    const bul=line.match(/^[-*] (.*)$/);
-    if(bul)return`<div class="note-bullet"><span class="note-bullet-dot"></span><span>${esc(bul[1])}</span></div>`;
-    // Numbered: "1. …"
-    const num=line.match(/^(\d+)\. (.*)$/);
-    if(num)return`<div class="note-num"><span class="note-num-idx">${num[1]}.</span><span>${esc(num[2])}</span></div>`;
-    // Empty line → gap
-    if(!line.trim())return'<span class="note-gap"></span>';
-    return`<div class="note-p">${esc(line)}</div>`;
+    if(cb)return{t:'cb',v:cb[2],c:cb[1].toLowerCase()==='x'};
+    const ul=line.match(/^[-*] (.*)$/);
+    if(ul)return{t:'ul',v:ul[1]};
+    const ol=line.match(/^(\d+)\. (.*)$/);
+    if(ol)return{t:'ol',v:ol[2],n:parseInt(ol[1])};
+    return{t:'text',v:line};
+  });
+}
+function blocksToText(blocks){
+  return blocks.map(b=>{
+    if(b.t==='cb')return`- [${b.c?'x':' '}] ${b.v}`;
+    if(b.t==='ul')return`- ${b.v}`;
+    if(b.t==='ol')return`${b.n||1}. ${b.v}`;
+    return b.v;
+  }).join('\n');
+}
+function renderBlocks(blocks){
+  return blocks.map((b,i)=>{
+    if(b.t==='cb')return`<div class="note-cb-row"><button class="note-cb-btn${b.c?' checked':''}" data-bi="${i}"></button><span class="note-cb-txt${b.c?' done':''}">${esc(b.v)}</span></div>`;
+    if(b.t==='ul')return`<div class="note-bullet"><span class="note-bullet-dot"></span><span>${esc(b.v)}</span></div>`;
+    if(b.t==='ol')return`<div class="note-num"><span class="note-num-idx">${b.n||1}.</span><span>${esc(b.v)}</span></div>`;
+    if(!b.v.trim())return'<span class="note-gap"></span>';
+    return`<div class="note-p">${esc(b.v)}</div>`;
   }).join('');
 }
-function toggleCheckbox(taskIdx,lineIdx){
-  const lines=S.tasks[taskIdx].split('\n');
-  lines[lineIdx]=lines[lineIdx].replace(/^((?:- ?)?\[)([ xX])(\] ?)(.*)$/,(_,a,b,c,d)=>a+(b===' '?'x':' ')+c+d);
-  S.tasks[taskIdx]=lines.join('\n');
+function taskIsRich(blocks){
+  return blocks.length>1||(blocks.length===1&&blocks[0].t!=='text');
+}
+function toggleBlock(taskIdx,blockIdx){
+  const blocks=S.tasks[taskIdx];
+  if(!blocks||!blocks[blockIdx]||blocks[blockIdx].t!=='cb')return;
+  blocks[blockIdx].c=!blocks[blockIdx].c;
   save();renderTask();
   if(document.getElementById('note-modal').classList.contains('open'))renderNoteModalBody();
 }
@@ -1246,9 +1255,10 @@ function renderNoteModal(){
   renderNoteModalFoot();
 }
 function renderNoteModalBody(){
-  const text=S.tasks[S.idx]||'';
+  const blocks=S.tasks[S.idx]||[{t:'text',v:''}];
   const $body=document.getElementById('note-modal-body');
   if(_nmEdit){
+    const text=blocksToText(blocks);
     $body.innerHTML=`<textarea id="note-modal-edit-area" placeholder="What needs doing?"></textarea>
       <div class="note-format-hint">
         <code>- [ ] item</code> checkbox &nbsp;·&nbsp; <code>- item</code> bullet &nbsp;·&nbsp; <code>1. item</code> numbered<br>
@@ -1257,7 +1267,6 @@ function renderNoteModalBody(){
     const ta=document.getElementById('note-modal-edit-area');
     ta.value=text;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
     ta.addEventListener('keydown',e=>{if(e.key==='Enter')handleNoteEnter(e,ta);});
-    // format toolbar buttons — toggle on/off
     document.getElementById('fmt-cb').onclick=()=>toggleFmt('- [ ] ');
     document.getElementById('fmt-bullet').onclick=()=>toggleFmt('- ');
     document.getElementById('fmt-num').onclick=()=>toggleFmt('1. ');
@@ -1268,8 +1277,7 @@ function renderNoteModalBody(){
       ta.selectionStart=ta.selectionEnd=s+1;ta.focus();
     };
   }else{
-    $body.innerHTML=`<div class="note-view">${parseNote(text)}</div>`;
-    // checkbox change handled by delegated listener on #note-modal-body
+    $body.innerHTML=`<div class="note-view">${renderBlocks(blocks)}</div>`;
   }
 }
 function renderNoteModalFoot(){
@@ -1291,7 +1299,7 @@ function renderNoteModalFoot(){
 }
 function saveNoteModal(){
   const val=document.getElementById('note-modal-edit-area')?.value.trim();
-  if(val){S.tasks[S.idx]=val;}
+  if(val){S.tasks[S.idx]=textToBlocks(val);}
   _nmEdit=false;save();renderTask();renderNoteModal();
 }
 // Returns the raw list prefix string at the start of a line, or null
@@ -1447,13 +1455,13 @@ function renderTask(){
     $card.classList.remove('rich-card');$d.disabled=true;$s.disabled=true;$q.disabled=true;$c.textContent='';return;
   }
   if(S.idx>=tasks.length)S.idx=0;
-  const text=tasks[S.idx];
-  const rich=isRichNote(text);
+  const blocks=tasks[S.idx];
+  const rich=taskIsRich(blocks);
   $card.classList.toggle('rich-card',rich);
   if(rich){
-    $t.innerHTML=parseNote(text);$t.className='rich';
+    $t.innerHTML=renderBlocks(blocks);$t.className='rich';
   }else{
-    $t.textContent=text;$t.className='';
+    $t.textContent=blocks[0]?.v||'';$t.className='';
   }
   $d.disabled=false;$s.disabled=tasks.length<2;$q.disabled=false;
   $c.textContent=tasks.length===1?'1 task left':`${tasks.length} tasks`;
@@ -1519,8 +1527,9 @@ function renderTasksDrawer(){
     const taskList=document.createElement('div');taskList.id='drag-task-list';
     S.tasks.forEach((t,i)=>{
       const isCurrent=i===S.idx;
-      const firstLine=t.split('\n')[0].replace(/^(?:- ?)?\[[ xX]\] ?|^[-*] |\d+\. /,'').trim();
-      const display=esc(firstLine+(t.includes('\n')?'  …':''));
+      const blocks=Array.isArray(t)?t:textToBlocks(t);
+      const firstLine=(blocks[0]?.v||'').trim();
+      const display=esc(firstLine+(blocks.length>1?'  …':''));
       const el=document.createElement('div');
       el.className='task-item'+(isCurrent?' current':'');
       el.dataset.i=i;
@@ -1557,7 +1566,7 @@ function renderTasksDrawer(){
     doneList.querySelectorAll('.done-undo').forEach(b=>b.addEventListener('click',e=>{
       const i=parseInt(e.currentTarget.dataset.i);
       const[c]=S.completed.splice(i,1);
-      S.tasks.unshift(c.text);S.idx=0;
+      S.tasks.unshift(textToBlocks(c.text));S.idx=0;
       save();render();renderTasksDrawer();
     }));
   }
@@ -1609,7 +1618,7 @@ function toggleDrawerFmt(type){
 function addTask(){
   const inp=document.getElementById('task-input');
   const val=inp.value.trim();if(!val)return;
-  S.tasks.push(val);S.chainTotal++;
+  S.tasks.push(textToBlocks(val));S.chainTotal++;
   inp.value='';autoResizeTA(inp);
   document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.classList.remove('active'));
   save();render();const b=document.getElementById('btn-add');
@@ -1639,7 +1648,7 @@ function completeTask(){
     el.style.background=newStage===3?'linear-gradient(135deg,#7c3aed,#ff8906)':'linear-gradient(135deg,#f59e0b,#fbbf24)';
     el.classList.add('show');setTimeout(()=>{el.classList.remove('show');el.style.background='';},3000);
   }
-  S.completed.unshift({text:S.tasks[S.idx],at:Date.now()});
+  S.completed.unshift({text:blocksToText(S.tasks[S.idx]),at:Date.now()});
   if(S.completed.length>50)S.completed.length=50;
   S.tasks.splice(S.idx,1);if(S.idx>=S.tasks.length)S.idx=0;
   save();triggerPetAnim('celebrate');animTransition('done',render);maybeShowTip();
@@ -1732,7 +1741,7 @@ document.getElementById('btn-open-tasks').addEventListener('click',()=>{menuDr.c
 function drawerAddTask(){
   const inp=document.getElementById('drawer-task-input');
   const val=inp.value.trim();if(!val)return;
-  S.tasks.push(val);S.chainTotal++;
+  S.tasks.push(textToBlocks(val));S.chainTotal++;
   // keep drawer format active for batch-adding
   inp.value=_fmtDrawer?FMT_PREFIX[_fmtDrawer]:'';
   save();render();renderTasksDrawer();
@@ -1768,7 +1777,7 @@ card.addEventListener('touchend',e=>{card.classList.remove('pressing');if(!tA)re
 card.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientY-ty2)>20){tA=false;card.classList.remove('pressing');}},{passive:true});
 document.getElementById('task-card').addEventListener('click',e=>{
   if(!S.tasks.length)return;
-  if(e.target.closest('.note-cb-row'))return; // native checkbox handles toggle
+  if(e.target.closest('.note-cb-btn'))return; // block button handles toggle
   openNoteModal();
 });
 document.getElementById('note-modal-close').addEventListener('click',closeNoteModal);
@@ -1777,16 +1786,15 @@ document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
 document.getElementById('btn-tasks-quick').addEventListener('click',()=>{_taskTab='active';renderTasksDrawer();tasksDr.open();});
 document.getElementById('btn-add').addEventListener('click',addTask);
-// Delegated checkbox change handlers — native input fires reliably on all devices
-document.getElementById('task-text').addEventListener('change',e=>{
-  if(e.target.type!=='checkbox')return;
-  const row=e.target.closest('.note-cb-row');if(!row)return;
-  toggleCheckbox(S.idx,parseInt(row.dataset.cb));
+// Delegated click handlers for block checkboxes — button click is most reliable on mobile
+document.getElementById('task-text').addEventListener('click',e=>{
+  const btn=e.target.closest('.note-cb-btn');if(!btn)return;
+  e.stopPropagation();
+  toggleBlock(S.idx,parseInt(btn.dataset.bi));
 });
-document.getElementById('note-modal-body').addEventListener('change',e=>{
-  if(e.target.type!=='checkbox')return;
-  const row=e.target.closest('.note-cb-row');if(!row)return;
-  toggleCheckbox(S.idx,parseInt(row.dataset.cb));
+document.getElementById('note-modal-body').addEventListener('click',e=>{
+  const btn=e.target.closest('.note-cb-btn');if(!btn)return;
+  toggleBlock(S.idx,parseInt(btn.dataset.bi));
 });
 
 // ═══ PWA INSTALL ══════════════════════════════════════════════
