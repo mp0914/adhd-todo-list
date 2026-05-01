@@ -150,7 +150,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #btn-done{background:var(--green);color:#0a1f12;font-weight:700;}
 #btn-skip{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
 #bottom-bar{display:flex;flex-direction:column;gap:5px;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
-.add-fmt-bar{display:flex;gap:5px;}
+.add-fmt-bar{display:flex;gap:5px;justify-content:center;}
 .add-fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;}
 .add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
 .add-fmt-btn:active{opacity:0.6;}
@@ -188,7 +188,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .t-cur-label{font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;padding:0 4px;}
 .t-del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
 .t-edit-input{flex:1;background:var(--surface2);border:1.5px solid var(--accent);border-radius:8px;padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;min-width:0;}
-#drawer-add-row{display:flex;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+#drawer-add-row{display:flex;flex-direction:column;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
 #drawer-task-input{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;caret-color:var(--accent);transition:border-color 0.2s;}
 #drawer-task-input:focus{border-color:var(--accent);}
 #drawer-task-input::placeholder{color:var(--muted);}
@@ -1187,7 +1187,8 @@ function showMain(){
 
 // ═══ NOTE PARSING & MODAL ════════════════════════════════════
 function isRichNote(text){
-  return text.includes('\n')||/^(?:- ?)?\[[ xX]\]|^[-*] |\d+\. /.test(text.trim());
+  const t=text.trim();
+  return t.includes('\n')||/^(?:- ?)?\[[ xX]\]/.test(t)||/^[-*] /.test(t)||/^\d+\. /.test(t);
 }
 function parseNote(text){
   if(!text)return'';
@@ -1259,6 +1260,7 @@ function renderNoteModalBody(){
   }else{
     $body.innerHTML=`<div class="note-view">${parseNote(text)}</div>`;
     $body.querySelectorAll('.note-cb-row').forEach(row=>{
+      row.addEventListener('touchend',e=>{e.preventDefault();toggleCheckbox(S.idx,parseInt(row.dataset.cb));},{passive:false});
       row.addEventListener('click',()=>{toggleCheckbox(S.idx,parseInt(row.dataset.cb));});
     });
   }
@@ -1418,9 +1420,11 @@ function renderTask(){
   $card.classList.toggle('rich-card',rich);
   if(rich){
     $t.innerHTML=parseNote(text);$t.className='rich';
-    $t.querySelectorAll('.note-cb-row').forEach(row=>row.addEventListener('click',e=>{
-      e.stopPropagation();toggleCheckbox(S.idx,parseInt(row.dataset.cb));
-    }));
+    $t.querySelectorAll('.note-cb-row').forEach(row=>{
+      row.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
+      row.addEventListener('touchend',e=>{e.stopPropagation();e.preventDefault();toggleCheckbox(S.idx,parseInt(row.dataset.cb));},{passive:false});
+      row.addEventListener('click',e=>{e.stopPropagation();toggleCheckbox(S.idx,parseInt(row.dataset.cb));});
+    });
   }else{
     $t.textContent=text;$t.className='';
   }
