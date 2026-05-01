@@ -148,12 +148,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #btn-done{background:var(--green);color:#0a1f12;font-weight:700;}
 #btn-skip{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
 #bottom-bar{display:flex;flex-direction:column;gap:5px;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
-.add-fmt-bar{display:flex;gap:5px;justify-content:center;}
-.add-fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;}
+.add-fmt-bar{display:flex;gap:5px;}
+.add-fmt-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 6px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;text-align:center;}
 .add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
 .add-fmt-btn:active{opacity:0.6;}
 #add-row{flex:1;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 5px 5px 14px;align-items:flex-end;}
-#task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:40px;max-height:120px;caret-color:var(--accent);resize:none;overflow-y:auto;line-height:1.45;}
+#task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:64px;max-height:120px;caret-color:var(--accent);resize:none;overflow-y:auto;line-height:1.45;}
+/* Block editor (note modal edit mode) */
+.block-editor{display:flex;flex-direction:column;gap:2px;}
+.be-row{display:flex;align-items:flex-start;gap:8px;padding:2px 0;}
+.be-ind{width:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding-top:10px;}
+.be-cb-box{width:20px;height:20px;min-width:20px;border-radius:4px;border:2px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.05);display:block;cursor:pointer;flex-shrink:0;transition:background 0.15s,border-color 0.15s;position:relative;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.be-cb-box.checked{background:var(--green);border-color:var(--green);}
+.be-cb-box.checked::after{content:'';position:absolute;top:3px;left:2px;width:11px;height:6px;border-left:2.5px solid #0a1f12;border-bottom:2.5px solid #0a1f12;transform:rotate(-45deg);}
+.be-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:block;}
+.be-num{color:var(--accent);font-weight:700;font-size:14px;line-height:1.6;}
+.be-text-ind{width:3px;height:14px;border-radius:2px;background:var(--border);display:block;}
+.be-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;resize:none;caret-color:var(--accent);padding:5px 0;min-height:34px;max-height:300px;overflow-y:hidden;}
+.be-input::placeholder{color:var(--muted);}
 #task-input::placeholder{color:var(--muted);}
 #btn-add{width:40px;height:40px;min-height:unset;flex:none;background:var(--accent);color:#1a0a00;border-radius:9px;font-size:20px;font-weight:700;flex-shrink:0;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.3s;}
@@ -322,7 +334,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v7</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v8</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -340,7 +352,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <button class="add-fmt-btn" data-fmt="num">1. list</button>
     </div>
     <div id="add-row">
-      <textarea id="task-input" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false" rows="1"></textarea>
+      <textarea id="task-input" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false" rows="2"></textarea>
       <button class="btn" id="btn-add">+</button>
     </div>
   </div>
@@ -1286,7 +1298,69 @@ function toggleBlock(taskIdx,blockIdx){
   if(document.getElementById('note-modal').classList.contains('open'))renderNoteModalBody();
 }
 // ── Note Modal ──
-let _nmEdit=false;
+let _nmEdit=false,_nmBlocks=null,_nmFocused=0;
+function renderBlockEditor(){
+  const editor=document.getElementById('block-editor');if(!editor)return;
+  const $body=document.getElementById('note-modal-body');const st=$body.scrollTop;
+  editor.innerHTML='';
+  _nmBlocks.forEach((b,i)=>{
+    const row=document.createElement('div');row.className='be-row';
+    const ind=document.createElement('div');ind.className='be-ind';
+    if(b.t==='cb'){
+      const box=document.createElement('span');box.className='be-cb-box'+(b.c?' checked':'');
+      box.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();_nmBlocks[i].c=!_nmBlocks[i].c;renderBlockEditor();focusBeInput(i);});
+      ind.appendChild(box);
+    }else if(b.t==='ul'){
+      ind.innerHTML='<span class="be-dot"></span>';
+    }else if(b.t==='ol'){
+      const n=document.createElement('span');n.className='be-num';n.textContent=(b.n||i+1)+'.';ind.appendChild(n);
+    }else{
+      ind.innerHTML='<span class="be-text-ind"></span>';
+    }
+    const inp=document.createElement('textarea');inp.className='be-input';inp.rows=1;
+    inp.value=b.v||'';if(i===0)inp.placeholder='What needs doing?';
+    inp.addEventListener('input',()=>{_nmBlocks[i].v=inp.value;autoResizeTA(inp);});
+    inp.addEventListener('focus',()=>{_nmFocused=i;updateBeToolbar();});
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){
+        e.preventDefault();
+        const nb={t:b.t==='text'?'text':b.t,v:'',c:false};
+        if(b.t==='ol')nb.n=(b.n||i+1)+1;
+        _nmBlocks.splice(i+1,0,nb);_nmFocused=i+1;
+        renderBlockEditor();focusBeInput(i+1);
+      }else if(e.key==='Backspace'&&inp.value===''&&_nmBlocks.length>1){
+        e.preventDefault();
+        _nmBlocks.splice(i,1);
+        const fi=Math.max(0,i-1);_nmFocused=fi;
+        renderBlockEditor();focusBeInput(fi,true);
+      }
+    });
+    row.appendChild(ind);row.appendChild(inp);editor.appendChild(row);
+    autoResizeTA(inp);
+  });
+  $body.scrollTop=st;updateBeToolbar();
+}
+function focusBeInput(idx,atEnd=false){
+  setTimeout(()=>{
+    const inputs=document.getElementById('block-editor')?.querySelectorAll('.be-input');
+    if(!inputs||!inputs[idx])return;
+    inputs[idx].focus();
+    if(atEnd)inputs[idx].selectionStart=inputs[idx].selectionEnd=inputs[idx].value.length;
+  },0);
+}
+function updateBeToolbar(){
+  if(!_nmBlocks)return;const b=_nmBlocks[_nmFocused];if(!b)return;
+  const tmap={cb:'fmt-cb',ul:'fmt-bullet',ol:'fmt-num'};
+  document.querySelectorAll('#note-modal-toolbar .fmt-btn').forEach(x=>x.classList.remove('active'));
+  if(tmap[b.t])document.getElementById(tmap[b.t])?.classList.add('active');
+}
+function changeBlockType(newT){
+  if(!_nmBlocks)return;const b=_nmBlocks[_nmFocused];if(!b)return;
+  b.t=b.t===newT?'text':newT;
+  if(b.t==='ol')b.n=_nmFocused+1;
+  if(b.t==='cb'&&b.c==null)b.c=false;
+  renderBlockEditor();focusBeInput(_nmFocused);
+}
 function openNoteModal(editMode=false){
   if(!S.tasks.length)return;
   _nmEdit=editMode;
@@ -1309,23 +1383,16 @@ function renderNoteModalBody(){
   const blocks=S.tasks[S.idx]||[{t:'text',v:''}];
   const $body=document.getElementById('note-modal-body');
   if(_nmEdit){
-    const text=blocksToText(blocks);
-    $body.innerHTML=`<textarea id="note-modal-edit-area" placeholder="What needs doing?"></textarea>
-      <div class="note-format-hint">
-        <code>- [ ] item</code> checkbox &nbsp;·&nbsp; <code>- item</code> bullet &nbsp;·&nbsp; <code>1. item</code> numbered<br>
-        <strong>Enter</strong> continues list · empty list line exits · <strong>Shift+Enter</strong> plain line
-      </div>`;
-    const ta=document.getElementById('note-modal-edit-area');
-    ta.value=text;ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
-    ta.addEventListener('keydown',e=>{if(e.key==='Enter')handleNoteEnter(e,ta);});
-    document.getElementById('fmt-cb').onclick=()=>toggleFmt('- [ ] ');
-    document.getElementById('fmt-bullet').onclick=()=>toggleFmt('- ');
-    document.getElementById('fmt-num').onclick=()=>toggleFmt('1. ');
+    _nmBlocks=(S.tasks[S.idx]||[{t:'text',v:''}]).map(b=>({...b}));_nmFocused=0;
+    const editor=document.createElement('div');editor.className='block-editor';editor.id='block-editor';
+    $body.innerHTML='';$body.appendChild(editor);
+    renderBlockEditor();focusBeInput(0);
+    document.getElementById('fmt-cb').onclick=()=>changeBlockType('cb');
+    document.getElementById('fmt-bullet').onclick=()=>changeBlockType('ul');
+    document.getElementById('fmt-num').onclick=()=>changeBlockType('ol');
     document.getElementById('fmt-br').onclick=()=>{
-      const ta=document.getElementById('note-modal-edit-area');if(!ta)return;
-      const s=ta.selectionStart,e=ta.selectionEnd;
-      ta.value=ta.value.slice(0,s)+'\n'+ta.value.slice(e);
-      ta.selectionStart=ta.selectionEnd=s+1;ta.focus();
+      _nmBlocks.splice(_nmFocused+1,0,{t:'text',v:''});
+      _nmFocused=_nmFocused+1;renderBlockEditor();focusBeInput(_nmFocused);
     };
   }else{
     const view=document.createElement('div');view.className='note-view';
@@ -1351,9 +1418,11 @@ function renderNoteModalFoot(){
   }
 }
 function saveNoteModal(){
-  const val=document.getElementById('note-modal-edit-area')?.value.trim();
-  if(val){S.tasks[S.idx]=textToBlocks(val);}
-  _nmEdit=false;save();renderTask();renderNoteModal();
+  if(_nmEdit&&_nmBlocks){
+    const kept=_nmBlocks.filter(b=>b.t!=='text'||b.v.trim());
+    S.tasks[S.idx]=kept.length?kept:[{t:'text',v:''}];
+  }
+  _nmEdit=false;_nmBlocks=null;save();renderTask();renderNoteModal();
 }
 // Returns the raw list prefix string at the start of a line, or null
 function getListPrefix(line){
