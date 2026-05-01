@@ -220,6 +220,26 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #install-nudge-btn{color:var(--blue);background:rgba(79,195,247,0.12);padding:6px 14px;border-radius:100px;border:none;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 #install-nudge-close{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 8px;-webkit-tap-highlight-color:transparent;}
 .ios-install-tip{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;font-size:13px;color:var(--dim);line-height:1.6;}
+/* Task drawer tabs */
+.tl-tabs{display:flex;gap:6px;margin-bottom:14px;flex-shrink:0;}
+.tl-tab{flex:1;padding:8px 0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;font-family:'DM Sans',sans-serif;}
+.tl-tab.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
+/* Drag handle */
+.t-drag{cursor:grab;padding:4px 8px 4px 2px;color:var(--muted);font-size:16px;line-height:1;flex-shrink:0;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;}
+.t-drag:active{cursor:grabbing;}
+.task-item.is-dragging{opacity:0.3;}
+.t-drag-spacer{background:rgba(255,137,6,0.08);border:1.5px dashed rgba(255,137,6,0.35);border-radius:8px;transition:height 0.1s;}
+/* Completed task items */
+.done-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
+.done-item:last-child{border-bottom:none;}
+.done-check{width:16px;height:16px;border-radius:4px;background:var(--green);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;}
+.done-check::after{content:'';display:block;width:8px;height:4.5px;border-left:2px solid #0a1f12;border-bottom:2px solid #0a1f12;transform:rotate(-45deg) translateY(-1px);}
+.done-info{flex:1;min-width:0;}
+.done-text{font-size:13px;color:var(--muted);text-decoration:line-through;word-break:break-word;line-height:1.4;opacity:0.7;}
+.done-time{font-size:10px;color:var(--muted);opacity:0.45;margin-top:2px;}
+.done-undo{background:none;border:1px solid var(--border);border-radius:6px;color:var(--dim);font-size:11px;font-weight:600;padding:5px 9px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
+.done-undo:active{opacity:0.5;}
+#btn-tasks-quick{flex:0 0 46px;background:var(--surface2);border:1px solid var(--border);color:var(--dim);}
 .ps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;}
 .ps-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:8px 4px 8px;cursor:pointer;transition:border-color 0.18s,background 0.18s;-webkit-tap-highlight-color:transparent;overflow:hidden;}
 .ps-card:active{transform:scale(0.93);}
@@ -296,6 +316,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   </div>
   <div id="actions">
     <button class="btn" id="btn-done" disabled>✓ Done</button>
+    <button class="btn" id="btn-tasks-quick" disabled><svg width="16" height="13" viewBox="0 0 16 13" fill="none"><rect y="0" width="16" height="2" rx="1" fill="currentColor"/><rect y="5.5" width="11" height="2" rx="1" fill="currentColor"/><rect y="11" width="13" height="2" rx="1" fill="currentColor"/></svg></button>
     <button class="btn" id="btn-skip" disabled>⏭ Skip</button>
   </div>
   <div id="bottom-bar">
@@ -925,8 +946,9 @@ const ITEMS=[
 const TOKEN_KEY='ot_token';
 let authToken=localStorage.getItem(TOKEN_KEY);
 const today=new Date().toDateString();
-let S={pets:{},activePet:null,tasks:[],idx:0,dayStreak:0,lastDate:'',
+let S={pets:{},activePet:null,tasks:[],completed:[],idx:0,dayStreak:0,lastDate:'',
   doneToday:0,totalDone:0,chainDone:0,chainTotal:0};
+let _taskTab='active';
 // AP() returns a mutable reference to the active pet's data object
 function AP(){
   if(!S.activePet)return{name:'',xp:0,hunger:70,happy:60,energy:0,unlocked:[],equipped:[]};
@@ -938,6 +960,7 @@ function applyState(data){
   Object.assign(S,data);
   // migrate old flat format (petType/petName/xp/etc.) → new S.pets structure
   if(!S.pets)S.pets={};
+  if(!S.completed)S.completed=[];
   if(S.petType){
     const eq=S.equipped;
     if(!S.pets[S.petType]){
@@ -1360,10 +1383,11 @@ function renderChain(){
 function renderTask(){
   const tasks=S.tasks,$t=document.getElementById('task-text'),
     $c=document.getElementById('task-count'),$card=document.getElementById('task-card'),
-    $d=document.getElementById('btn-done'),$s=document.getElementById('btn-skip');
+    $d=document.getElementById('btn-done'),$s=document.getElementById('btn-skip'),
+    $q=document.getElementById('btn-tasks-quick');
   if(!tasks.length){
     $t.textContent='Add a task below ↓';$t.className='empty';
-    $card.classList.remove('rich-card');$d.disabled=true;$s.disabled=true;$c.textContent='';return;
+    $card.classList.remove('rich-card');$d.disabled=true;$s.disabled=true;$q.disabled=true;$c.textContent='';return;
   }
   if(S.idx>=tasks.length)S.idx=0;
   const text=tasks[S.idx];
@@ -1377,39 +1401,112 @@ function renderTask(){
   }else{
     $t.textContent=text;$t.className='';
   }
-  $d.disabled=false;$s.disabled=tasks.length<2;
+  $d.disabled=false;$s.disabled=tasks.length<2;$q.disabled=false;
   $c.textContent=tasks.length===1?'1 task left':`${tasks.length} tasks`;
+}
+function timeAgo(ts){
+  const diff=Date.now()-ts,m=Math.floor(diff/60000);
+  if(m<1)return'just now';if(m<60)return`${m}m ago`;
+  const h=Math.floor(m/60);if(h<24)return`${h}h ago`;
+  return`${Math.floor(h/24)}d ago`;
+}
+function initTaskDrag(listEl){
+  listEl.addEventListener('pointerdown',e=>{
+    if(!e.target.closest('.t-drag'))return;
+    const item=e.target.closest('.task-item');if(!item)return;
+    e.preventDefault();
+    const rect=item.getBoundingClientRect();
+    const spacer=document.createElement('div');
+    spacer.className='t-drag-spacer';spacer.style.height=rect.height+'px';
+    item.insertAdjacentElement('afterend',spacer);
+    item.classList.add('is-dragging');
+    item.style.cssText=`position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;z-index:9999;background:var(--surface2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);`;
+    const drag={item,spacer,idx:parseInt(item.dataset.i),offsetY:e.clientY-rect.top};
+    function onMove(e){
+      drag.item.style.top=(e.clientY-drag.offsetY)+'px';
+      const others=[...listEl.querySelectorAll('.task-item:not(.is-dragging)')];
+      let insertBefore=null;
+      for(const o of others){const r=o.getBoundingClientRect();if(e.clientY<r.top+r.height/2){insertBefore=o;break;}}
+      if(insertBefore)listEl.insertBefore(drag.spacer,insertBefore);else listEl.appendChild(drag.spacer);
+    }
+    function onUp(){
+      document.removeEventListener('pointermove',onMove);document.removeEventListener('pointerup',onUp);
+      const allChildren=[...listEl.children];
+      const spacerPos=allChildren.indexOf(drag.spacer);
+      const insertAt=allChildren.slice(0,spacerPos).filter(el=>el.classList.contains('task-item')&&!el.classList.contains('is-dragging')).length;
+      const[task]=S.tasks.splice(drag.idx,1);
+      S.tasks.splice(insertAt,0,task);
+      const old=drag.idx,nw=insertAt;
+      if(S.idx===old)S.idx=nw;
+      else if(old<nw&&S.idx>old&&S.idx<=nw)S.idx--;
+      else if(old>nw&&S.idx<old&&S.idx>=nw)S.idx++;
+      drag.spacer.remove();drag.item.classList.remove('is-dragging');drag.item.style.cssText='';
+      save();render();renderTasksDrawer();
+    }
+    document.addEventListener('pointermove',onMove);document.addEventListener('pointerup',onUp);
+  });
 }
 function renderTasksDrawer(){
   const list=document.getElementById('tasks-list');list.innerHTML='';
   const title=document.getElementById('tasks-drawer-title');
-  title.textContent=S.tasks.length?`All Tasks · ${S.tasks.length}`:'All Tasks';
-  if(!S.tasks.length){list.innerHTML='<div style="color:var(--muted);text-align:center;padding:28px 0;font-size:14px;">No tasks yet — add one below</div>';return;}
-  S.tasks.forEach((t,i)=>{
-    const isCurrent=i===S.idx;
-    // Show only first line in drawer list; indicate more with "…"
-    const firstLine=t.split('\n')[0].replace(/^(?:- ?)?\[[ xX]\] ?|^[-*] |\d+\. /,'').trim();
-    const display=esc(firstLine+(t.includes('\n')?'  …':''));
-    const el=document.createElement('div');
-    el.className='task-item'+(isCurrent?' current':'');
-    el.innerHTML=`<span class="t-dot"></span><span class="t-text" data-i="${i}">${display}</span>${isCurrent?'<span class="t-cur-label">now</span>':`<button class="t-focus" data-i="${i}">focus</button>`}<button class="t-del" data-i="${i}">✕</button>`;
-    list.appendChild(el);
-  });
-  list.querySelectorAll('.t-del').forEach(b=>b.addEventListener('click',e=>{
-    const i=parseInt(e.currentTarget.dataset.i);S.tasks.splice(i,1);
-    if(S.idx>=S.tasks.length)S.idx=Math.max(0,S.tasks.length-1);
-    save();render();renderTasksDrawer();
+  const addRow=document.getElementById('drawer-add-row');
+  // Build tabs
+  const tabsHtml=`<div class="tl-tabs"><button class="tl-tab${_taskTab==='active'?' active':''}" data-tab="active">Tasks${S.tasks.length?` · ${S.tasks.length}`:''}</button><button class="tl-tab${_taskTab==='done'?' active':''}" data-tab="done">Completed${S.completed.length?` · ${S.completed.length}`:''}</button></div>`;
+  list.innerHTML=tabsHtml;
+  list.querySelectorAll('.tl-tab').forEach(btn=>btn.addEventListener('click',e=>{
+    _taskTab=e.currentTarget.dataset.tab;renderTasksDrawer();
   }));
-  list.querySelectorAll('.t-focus').forEach(b=>b.addEventListener('click',e=>{
-    S.idx=parseInt(e.currentTarget.dataset.i);
-    save();render();renderTasksDrawer();
-  }));
-  // Clicking a task in the drawer opens the note modal for full editing
-  list.querySelectorAll('.t-text').forEach(span=>span.addEventListener('click',e=>{
-    const i=parseInt(e.currentTarget.dataset.i);
-    S.idx=i;tasksDr.close();
-    openNoteModal(true);
-  }));
+  title.textContent='Tasks';
+  if(_taskTab==='active'){
+    addRow.style.display='';
+    if(!S.tasks.length){
+      const empty=document.createElement('div');empty.style.cssText='color:var(--muted);text-align:center;padding:28px 0;font-size:14px;';empty.textContent='No tasks yet — add one below';list.appendChild(empty);return;
+    }
+    const taskList=document.createElement('div');taskList.id='drag-task-list';
+    S.tasks.forEach((t,i)=>{
+      const isCurrent=i===S.idx;
+      const firstLine=t.split('\n')[0].replace(/^(?:- ?)?\[[ xX]\] ?|^[-*] |\d+\. /,'').trim();
+      const display=esc(firstLine+(t.includes('\n')?'  …':''));
+      const el=document.createElement('div');
+      el.className='task-item'+(isCurrent?' current':'');
+      el.dataset.i=i;
+      el.innerHTML=`<span class="t-drag" title="drag to reorder">⠿</span><span class="t-text" data-i="${i}">${display}</span>${isCurrent?'<span class="t-cur-label">now</span>':`<button class="t-focus" data-i="${i}">focus</button>`}<button class="t-del" data-i="${i}">✕</button>`;
+      taskList.appendChild(el);
+    });
+    list.appendChild(taskList);
+    taskList.querySelectorAll('.t-del').forEach(b=>b.addEventListener('click',e=>{
+      const i=parseInt(e.currentTarget.dataset.i);S.tasks.splice(i,1);
+      if(S.idx>=S.tasks.length)S.idx=Math.max(0,S.tasks.length-1);
+      save();render();renderTasksDrawer();
+    }));
+    taskList.querySelectorAll('.t-focus').forEach(b=>b.addEventListener('click',e=>{
+      S.idx=parseInt(e.currentTarget.dataset.i);save();render();renderTasksDrawer();
+    }));
+    taskList.querySelectorAll('.t-text').forEach(span=>span.addEventListener('click',e=>{
+      const i=parseInt(e.currentTarget.dataset.i);S.idx=i;tasksDr.close();openNoteModal(true);
+    }));
+    initTaskDrag(taskList);
+  }else{
+    addRow.style.display='none';
+    if(!S.completed.length){
+      const empty=document.createElement('div');empty.style.cssText='color:var(--muted);text-align:center;padding:28px 0;font-size:14px;';empty.textContent='No completed tasks yet';list.appendChild(empty);return;
+    }
+    const doneList=document.createElement('div');
+    S.completed.forEach((c,i)=>{
+      const firstLine=c.text.split('\n')[0].replace(/^(?:- ?)?\[[ xX]\] ?|^[-*] |\d+\. /,'').trim();
+      const display=esc(firstLine+(c.text.includes('\n')?'  …':''));
+      const el=document.createElement('div');el.className='done-item';
+      el.innerHTML=`<div class="done-check"></div><div class="done-info"><div class="done-text">${display}</div><div class="done-time">${timeAgo(c.at)}</div></div><button class="done-undo" data-i="${i}">↩ undo</button>`;
+      doneList.appendChild(el);
+    });
+    list.appendChild(doneList);
+    doneList.querySelectorAll('.done-undo').forEach(b=>b.addEventListener('click',e=>{
+      const i=parseInt(e.currentTarget.dataset.i);
+      const[c]=S.completed.splice(i,1);
+      S.tasks.unshift(c.text);S.idx=0;
+      save();render();renderTasksDrawer();
+    }));
+  }
 }
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -1444,13 +1541,17 @@ function completeTask(){
     el.style.background=newStage===3?'linear-gradient(135deg,#7c3aed,#ff8906)':'linear-gradient(135deg,#f59e0b,#fbbf24)';
     el.classList.add('show');setTimeout(()=>{el.classList.remove('show');el.style.background='';},3000);
   }
+  S.completed.unshift({text:S.tasks[S.idx],at:Date.now()});
+  if(S.completed.length>50)S.completed.length=50;
   S.tasks.splice(S.idx,1);if(S.idx>=S.tasks.length)S.idx=0;
   save();triggerPetAnim('celebrate');animTransition('done',render);maybeShowTip();
 }
 function skipTask(){
   if(S.tasks.length<2)return;
-  const t=S.tasks.splice(S.idx,1)[0];S.tasks.push(t);
-  if(S.idx>=S.tasks.length)S.idx=0;
+  const wasLast=S.idx===S.tasks.length-1;
+  const t=S.tasks.splice(S.idx,1)[0];
+  S.tasks.push(t);
+  if(wasLast)S.idx=0;
   save();animTransition('skip',render);
 }
 function checkUnlocks(prevXP){
@@ -1563,6 +1664,7 @@ document.getElementById('note-modal-close').addEventListener('click',closeNoteMo
 document.getElementById('note-overlay').addEventListener('click',closeNoteModal);
 document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
+document.getElementById('btn-tasks-quick').addEventListener('click',()=>{_taskTab='active';renderTasksDrawer();tasksDr.open();});
 document.getElementById('btn-add').addEventListener('click',addTask);
 document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
 
