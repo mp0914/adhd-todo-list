@@ -322,7 +322,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;opacity:0.35;font-size:9px;letter-spacing:0">v5</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v6</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -1496,13 +1496,21 @@ function renderTask(){
     $card.classList.remove('rich-card');$d.disabled=true;$s.disabled=true;$q.disabled=true;$c.textContent='';return;
   }
   if(S.idx>=tasks.length)S.idx=0;
-  const blocks=tasks[S.idx];
+  let blocks=tasks[S.idx];
+  // Safety: if task is still a raw string (migration missed it), convert now
+  if(typeof blocks==='string')blocks=tasks[S.idx]=textToBlocks(blocks);
   const rich=taskIsRich(blocks);
   $card.classList.toggle('rich-card',rich);
-  if(rich){
-    $t.innerHTML='';$t.appendChild(renderBlocks(blocks,S.idx));$t.className='rich';
-  }else{
-    $t.textContent=blocks[0]?.v||'';$t.className='';
+  try{
+    if(rich){
+      $t.innerHTML='';$t.appendChild(renderBlocks(blocks,S.idx));$t.className='rich';
+    }else{
+      $t.textContent=blocks[0]?.v||'';$t.className='';
+    }
+  }catch(err){
+    // Last-resort fallback: show raw text so something appears
+    $t.textContent=blocksToText(blocks);$t.className='';
+    console.error('renderTask failed:',err,blocks);
   }
   $d.disabled=false;$s.disabled=tasks.length<2;$q.disabled=false;
   $c.textContent=tasks.length===1?'1 task left':`${tasks.length} tasks`;
