@@ -1220,28 +1220,30 @@ function blocksToText(blocks){
   }).join('\n');
 }
 // renderBlocks: returns a DocumentFragment — direct DOM build so handlers attach immediately
+let _cbUid=0;
 function renderBlocks(blocks,taskIdx){
   const frag=document.createDocumentFragment();
   blocks.forEach((b,i)=>{
     if(b.t==='cb'){
+      const uid='cb-'+(++_cbUid);
       const row=document.createElement('div');
       row.className='note-cb-row';
-      // Hidden native checkbox (accessibility + state)
+      // Native checkbox — hidden visually, tied to label via id/for
       const inp=document.createElement('input');
       inp.type='checkbox';inp.className='note-cb-real';
-      inp.checked=!!b.c;inp.tabIndex=-1;
-      // Visible label styled as checkbox box
+      inp.id=uid;inp.checked=!!b.c;inp.tabIndex=-1;
+      // Visible box — label[for=uid] so clicking it toggles the input natively
       const lbl=document.createElement('label');
       lbl.className='note-cb-label'+(b.c?' checked':'');
-      // Text label (also tappable)
+      lbl.setAttribute('for',uid);
+      // Text span
       const txt=document.createElement('span');
       txt.className='note-cb-txt'+(b.c?' done':'');
       txt.textContent=b.v;
-      // Single handler on the whole row — most reliable tap area
+      // pointerup on row handles the block state toggle (works on all mobile)
       function onToggle(e){
         e.preventDefault();e.stopPropagation();
-        if(taskIdx!=null)toggleBlock(taskIdx,i);
-        else toggleBlock(S.idx,i);
+        toggleBlock(taskIdx!=null?taskIdx:S.idx,i);
       }
       row.addEventListener('pointerup',onToggle);
       row.appendChild(inp);row.appendChild(lbl);row.appendChild(txt);
