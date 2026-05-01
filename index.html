@@ -322,7 +322,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v6</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v7</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -1004,8 +1004,18 @@ function applyState(data){
   Object.values(S.pets).forEach(p=>{
     if(typeof p.equipped==='string'||p.equipped===null)p.equipped=p.equipped?[p.equipped]:[];
   });
-  // migrate string tasks → Block[]
-  if(Array.isArray(S.tasks))S.tasks=S.tasks.map(t=>typeof t==='string'?textToBlocks(t):t);
+  // migrate/repair tasks → always produce clean Block[]
+  const _mdPat=/^(?:[-*] |(?:- ?)?\[[ xX]\] |\d+\. )/;
+  if(Array.isArray(S.tasks))S.tasks=S.tasks.map(t=>{
+    if(typeof t==='string') return textToBlocks(t);
+    if(Array.isArray(t)){
+      // Repair corrupted blocks: text blocks that still contain raw markdown prefixes
+      if(t.some(b=>b.t==='text'&&b.v&&_mdPat.test(b.v)))
+        return textToBlocks(t.map(b=>b.t==='cb'?`- [${b.c?'x':' '}] ${b.v}`:b.t==='ul'?`- ${b.v}`:b.t==='ol'?`${b.n||1}. ${b.v}`:b.v).join('\n'));
+      return t;
+    }
+    return textToBlocks(String(t));
+  });
 }
 function applyDayRollover(){
   if(S.lastDate&&S.lastDate!==today){
@@ -1501,6 +1511,10 @@ function renderTask(){
   let blocks=tasks[S.idx];
   // Safety: if task is still a raw string (migration missed it), convert now
   if(typeof blocks==='string')blocks=tasks[S.idx]=textToBlocks(blocks);
+  // Repair any text blocks still containing raw markdown prefixes
+  const _mp=/^(?:[-*] |(?:- ?)?\[[ xX]\] |\d+\. )/;
+  if(Array.isArray(blocks)&&blocks.some(b=>b.t==='text'&&b.v&&_mp.test(b.v)))
+    blocks=tasks[S.idx]=textToBlocks(blocksToText(blocks));
   const rich=taskIsRich(blocks);
   $card.classList.toggle('rich-card',rich);
   try{
