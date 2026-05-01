@@ -22,11 +22,16 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Never cache HTML — always fetch fresh from network, fall back to cache offline
+  // HTML navigation: always network-first with no-store, fall back to cache offline
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' })
-        .then(res => { caches.open(CACHE).then(c => c.put(e.request, res.clone())); return res; })
+        .then(res => {
+          // Clone BEFORE returning so body isn't consumed when we write to cache
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+          return res;
+        })
         .catch(() => caches.match(e.request))
     );
     return;
