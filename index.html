@@ -154,8 +154,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .add-fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;}
 .add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
 .add-fmt-btn:active{opacity:0.6;}
-#add-row{flex:1;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 5px 5px 14px;align-items:center;}
-#task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:40px;caret-color:var(--accent);}
+#add-row{flex:1;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 5px 5px 14px;align-items:flex-end;}
+#task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:40px;max-height:120px;caret-color:var(--accent);resize:none;overflow-y:auto;line-height:1.45;}
 #task-input::placeholder{color:var(--muted);}
 #btn-add{width:40px;height:40px;min-height:unset;flex:none;background:var(--accent);color:#1a0a00;border-radius:9px;font-size:20px;font-weight:700;flex-shrink:0;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.3s;}
@@ -330,7 +330,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <button class="add-fmt-btn" data-fmt="num">1. list</button>
     </div>
     <div id="add-row">
-      <input id="task-input" type="text" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <textarea id="task-input" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false" rows="1"></textarea>
       <button class="btn" id="btn-add">+</button>
     </div>
   </div>
@@ -1420,11 +1420,6 @@ function renderTask(){
   $card.classList.toggle('rich-card',rich);
   if(rich){
     $t.innerHTML=parseNote(text);$t.className='rich';
-    $t.querySelectorAll('.note-cb-row').forEach(row=>{
-      row.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});
-      row.addEventListener('touchend',e=>{e.stopPropagation();e.preventDefault();toggleCheckbox(S.idx,parseInt(row.dataset.cb));},{passive:false});
-      row.addEventListener('click',e=>{e.stopPropagation();toggleCheckbox(S.idx,parseInt(row.dataset.cb));});
-    });
   }else{
     $t.textContent=text;$t.className='';
   }
@@ -1539,31 +1534,52 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 
 // ═══ QUICK FORMAT (main + drawer inputs) ═════════════════════
 const FMT_PREFIX={cb:'- [ ] ',bullet:'- ',num:'1. '};
-let _fmtMain=null,_fmtDrawer=null;
-function toggleInputFmt(inputId,barId,type,currentRef,setRef){
-  const inp=document.getElementById(inputId);
-  const next=currentRef===type?null:type;
-  // swap prefix in input value
-  const oldPfx=currentRef?FMT_PREFIX[currentRef]:'';
+let _fmtDrawer=null;
+function autoResizeTA(ta){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,120)+'px';}
+// Line-aware format toggle for textarea (main screen)
+function toggleMainFmt(type){
+  const inp=document.getElementById('task-input');
+  const s=inp.selectionStart||0;
+  const lineStart=inp.value.lastIndexOf('\n',s-1)+1;
+  const lineEndIdx=inp.value.indexOf('\n',s);
+  const lineEnd=lineEndIdx===-1?inp.value.length:lineEndIdx;
+  const lineText=inp.value.slice(lineStart,lineEnd);
+  const cur=getListPrefix(lineText);
+  const curType=listPrefixType(cur);
+  const newPfx=FMT_PREFIX[type];
+  if(curType===type&&cur){
+    inp.value=inp.value.slice(0,lineStart)+lineText.slice(cur.length)+inp.value.slice(lineEnd);
+    inp.selectionStart=inp.selectionEnd=Math.max(lineStart,s-cur.length);
+  }else if(cur){
+    inp.value=inp.value.slice(0,lineStart)+newPfx+lineText.slice(cur.length)+inp.value.slice(lineEnd);
+    inp.selectionStart=inp.selectionEnd=lineStart+newPfx.length+Math.max(0,s-lineStart-cur.length);
+  }else{
+    inp.value=inp.value.slice(0,lineStart)+newPfx+inp.value.slice(lineStart);
+    inp.selectionStart=inp.selectionEnd=s+newPfx.length;
+  }
+  const activeFmt=curType===type?null:type;
+  document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.classList.toggle('active',b.dataset.fmt===activeFmt));
+  inp.focus();autoResizeTA(inp);
+}
+// Simple prefix toggle for drawer input
+function toggleDrawerFmt(type){
+  const inp=document.getElementById('drawer-task-input');
+  const next=_fmtDrawer===type?null:type;
+  const oldPfx=_fmtDrawer?FMT_PREFIX[_fmtDrawer]:'';
   const newPfx=next?FMT_PREFIX[next]:'';
   let v=inp.value;
   if(oldPfx&&v.startsWith(oldPfx))v=v.slice(oldPfx.length);
   inp.value=newPfx+v;
-  // update button highlights
-  document.querySelectorAll(`#${barId} .add-fmt-btn`).forEach(b=>{
-    b.classList.toggle('active',b.dataset.fmt===next);
-  });
-  setRef(next);
-  inp.focus();
-  inp.setSelectionRange(inp.value.length,inp.value.length);
+  document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.classList.toggle('active',b.dataset.fmt===next));
+  _fmtDrawer=next;inp.focus();
 }
 // ═══ ACTIONS ═════════════════════════════════════════════════
 function addTask(){
   const inp=document.getElementById('task-input');
   const val=inp.value.trim();if(!val)return;
   S.tasks.push(val);S.chainTotal++;
-  // keep format active for batch-adding; reset input to just the prefix
-  inp.value=_fmtMain?FMT_PREFIX[_fmtMain]:'';
+  inp.value='';autoResizeTA(inp);
+  document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.classList.remove('active'));
   save();render();const b=document.getElementById('btn-add');
   b.style.transform='scale(0.82)';setTimeout(()=>b.style.transform='',120);
 }
@@ -1685,17 +1701,18 @@ function drawerAddTask(){
   const inp=document.getElementById('drawer-task-input');
   const val=inp.value.trim();if(!val)return;
   S.tasks.push(val);S.chainTotal++;
+  // keep drawer format active for batch-adding
   inp.value=_fmtDrawer?FMT_PREFIX[_fmtDrawer]:'';
   save();render();renderTasksDrawer();
 }
 document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask);
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
-document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>{
-  toggleInputFmt('task-input','main-fmt-bar',b.dataset.fmt,_fmtMain,v=>_fmtMain=v);
-}));
-document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>{
-  toggleInputFmt('drawer-task-input','drawer-fmt-bar',b.dataset.fmt,_fmtDrawer,v=>_fmtDrawer=v);
-}));
+document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleMainFmt(b.dataset.fmt)));
+document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleDrawerFmt(b.dataset.fmt)));
+// Textarea: smart Enter (continues list) — plain Enter = newline, + = submit
+const _mainTA=document.getElementById('task-input');
+_mainTA.addEventListener('keydown',e=>{if(e.key==='Enter')handleNoteEnter(e,_mainTA);});
+_mainTA.addEventListener('input',()=>autoResizeTA(_mainTA));
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
   const p=AP();
@@ -1714,7 +1731,8 @@ card.addEventListener('touchend',e=>{card.classList.remove('pressing');if(!tA)re
 card.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientY-ty2)>20){tA=false;card.classList.remove('pressing');}},{passive:true});
 document.getElementById('task-card').addEventListener('click',e=>{
   if(!S.tasks.length)return;
-  if(e.target.closest('.note-cb-row'))return; // checkbox handled separately
+  const cbRow=e.target.closest('.note-cb-row');
+  if(cbRow){toggleCheckbox(S.idx,parseInt(cbRow.dataset.cb));return;}
   openNoteModal();
 });
 document.getElementById('note-modal-close').addEventListener('click',closeNoteModal);
@@ -1723,7 +1741,6 @@ document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
 document.getElementById('btn-tasks-quick').addEventListener('click',()=>{_taskTab='active';renderTasksDrawer();tasksDr.open();});
 document.getElementById('btn-add').addEventListener('click',addTask);
-document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}});
 
 // ═══ PWA INSTALL ══════════════════════════════════════════════
 (()=>{
