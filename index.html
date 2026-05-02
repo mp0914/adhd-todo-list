@@ -49,9 +49,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #btn-menu{background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--dim);width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:background 0.15s,border-color 0.15s;}
 #btn-menu:active{background:var(--surface2);border-color:rgba(255,255,255,0.16);}
 #pet-stage{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:4px 20px 2px;position:relative;z-index:10;}
-#pet-bg{width:176px;height:176px;border-radius:50%;background:radial-gradient(circle,var(--surface2) 55%,transparent 100%);display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:8px;transition:background 0.5s;}
-#pet-bg.rainbow-bg{background:radial-gradient(circle,rgba(255,100,100,0.18) 0%,rgba(100,200,100,0.14) 35%,rgba(80,120,255,0.18) 65%,transparent 100%);}
-#pet-svg-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;}
+#pet-bg{width:176px;height:176px;border-radius:50%;background:radial-gradient(circle,var(--surface2) 55%,transparent 100%);display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:8px;transition:background 0.5s;overflow:hidden;}
+#pet-bg.rainbow-bg{background:var(--bg2);}
+#pet-bg.rainbow-bg::before{content:'';position:absolute;width:280px;height:280px;top:50%;left:50%;transform:translate(-50%,-50%) rotate(0deg);background:conic-gradient(from 0deg,#ff6666 0%,#ffaa44 14%,#ffee44 28%,#66dd66 43%,#44aaff 57%,#aa55ff 71%,#ff55cc 85%,#ff6666 100%);opacity:0.75;animation:rainbow-spin 5s linear infinite;pointer-events:none;z-index:0;}
+#pet-svg-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
+@keyframes rainbow-spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
 #pet-svg-wrap svg{width:140px;height:140px;overflow:visible;}
 #pet-svg-wrap.idle{animation:petIdle 2.8s ease-in-out infinite;}
 #pet-svg-wrap.bounce{animation:petBounce 0.45s ease;}
@@ -334,7 +336,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v8</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v9</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
