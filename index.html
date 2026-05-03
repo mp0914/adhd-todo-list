@@ -84,7 +84,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .chain-dot.done{background:var(--accent);border-color:var(--accent);}
 #chain-label{font-size:10px;color:var(--muted);letter-spacing:0.05em;margin-left:auto;}
 #focus-label{flex-shrink:0;padding:10px 22px 6px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;position:relative;z-index:10;}
-#task-area{flex:1;display:flex;flex-direction:column;padding:0 22px;position:relative;z-index:10;min-height:0;}
+#task-area{flex:1;display:flex;flex-direction:column;padding:0 22px;position:relative;z-index:10;min-height:0;overflow:hidden;}
 #task-count{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.05em;}
 #task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;min-height:88px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;cursor:pointer;overflow:hidden;}
 #task-card.pressing{transform:scale(0.97);box-shadow:0 4px 16px rgba(0,0,0,0.4);}
@@ -283,6 +283,34 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   #bottom-bar{padding:6px 26px;padding-bottom:18px;}
   .drawer{max-width:440px;}
 }
+/* ── compact-height (iPhone SE, shorter iOS devices) ─────────────── */
+@media(max-height:780px){
+  #pet-bg{width:148px;height:148px;margin-bottom:4px;}
+  #pet-svg-wrap,#pet-svg-wrap svg{width:114px;height:114px;}
+  #pet-stage{padding:2px 20px 0;}
+  #stat-bars{padding:0 22px;gap:4px;}
+  #xp-row{padding:4px 22px 0;}
+  #items-row{padding:3px 22px 0;}
+  #chain-bar{padding:3px 22px 1px;}
+  #focus-label{padding:6px 22px 2px;}
+  #task-input{min-height:40px;}
+  .btn{min-height:46px;}
+  #actions{padding:6px 22px 4px;}
+  #bottom-bar{padding:4px 22px;padding-bottom:max(10px,env(safe-area-inset-bottom));}
+}
+@media(max-height:680px){
+  #pet-bg{width:118px;height:118px;margin-bottom:2px;}
+  #pet-svg-wrap,#pet-svg-wrap svg{width:92px;height:92px;}
+  #stat-bars{gap:3px;}
+  .stat-track{height:5px;}
+  #items-row{padding:2px 22px 0;}
+  #chain-bar{padding:2px 22px 0;}
+  #focus-label{padding:4px 22px 1px;}
+  #task-card{min-height:72px;padding:12px 16px;}
+  .btn{min-height:40px;font-size:14px;}
+  #actions{padding:4px 22px 2px;gap:7px;}
+  #swipe-hint{display:none;}
+}
 </style>
 </head>
 <body>
@@ -336,7 +364,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v9</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v10</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
