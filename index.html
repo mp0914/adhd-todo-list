@@ -373,7 +373,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v12</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v13</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -1749,6 +1749,7 @@ function renderTasksDrawer(){
       const i=parseInt(e.currentTarget.dataset.i);
       const[c]=S.completed.splice(i,1);
       S.tasks.unshift(textToBlocks(c.text));S.idx=0;
+      if(c.xp){const p=AP();p.xp=Math.max(0,p.xp-c.xp);S.doneToday=Math.max(0,S.doneToday-1);S.totalDone=Math.max(0,S.totalDone-1);S.chainDone=Math.max(0,S.chainDone-1);}
       save();render();renderTasksDrawer();
     }));
   }
@@ -1830,7 +1831,7 @@ function completeTask(){
     el.style.background=newStage===3?'linear-gradient(135deg,#7c3aed,#ff8906)':'linear-gradient(135deg,#f59e0b,#fbbf24)';
     el.classList.add('show');setTimeout(()=>{el.classList.remove('show');el.style.background='';},3000);
   }
-  S.completed.unshift({text:blocksToText(S.tasks[S.idx]),at:Date.now()});
+  S.completed.unshift({text:blocksToText(S.tasks[S.idx]),at:Date.now(),xp:p.xp-prevXP});
   if(S.completed.length>50)S.completed.length=50;
   S.tasks.splice(S.idx,1);if(S.idx>=S.tasks.length)S.idx=0;
   save();triggerPetAnim('celebrate');animTransition('done',render);maybeShowTip();
