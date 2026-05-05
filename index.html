@@ -373,7 +373,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v13</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v14</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -889,11 +889,29 @@ function getItemSVG(itemId) {
     </svg>`,
     rainbow:'',nightsky:'',forest:'',ocean:'',sunset:'',space:'',
     sword:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
-      <rect x="113" y="28" width="5" height="52" rx="2.5" fill="#b0bec5"/>
-      <polygon points="115.5,12 110,28 121,28" fill="#eceff1"/>
-      <rect x="104" y="76" width="23" height="5" rx="2" fill="#78909c"/>
-      <rect x="113.5" y="80" width="4" height="22" rx="2" fill="#6d4c41"/>
-      <circle cx="115.5" cy="102" r="3" fill="#ffd600"/>
+      <defs>
+        <filter id="sw-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="sw-blade" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#90caf9"/>
+          <stop offset="48%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#bbdefb"/>
+        </linearGradient>
+      </defs>
+      <g transform="rotate(45 80 74)" filter="url(#sw-glow)">
+        <polygon points="80.5,5 76.5,64 84.5,64" fill="url(#sw-blade)"/>
+        <line x1="80.5" y1="8" x2="78" y2="62" stroke="rgba(255,255,255,0.65)" stroke-width="1.5"/>
+        <rect x="63" y="62" width="35" height="10" rx="5" fill="#ffd700"/>
+        <rect x="64" y="63" width="33" height="4" rx="2" fill="rgba(255,255,255,0.45)"/>
+        <rect x="77" y="71" width="8" height="22" rx="3.5" fill="#4e2c0e"/>
+        <rect x="77" y="74" width="8" height="2.5" rx="1.2" fill="#8b5e3c" opacity="0.9"/>
+        <rect x="77" y="79" width="8" height="2.5" rx="1.2" fill="#8b5e3c" opacity="0.9"/>
+        <rect x="77" y="84" width="8" height="2.5" rx="1.2" fill="#8b5e3c" opacity="0.9"/>
+        <circle cx="81" cy="96" r="6.5" fill="#ffd700"/>
+        <circle cx="79.5" cy="94.5" r="2.8" fill="rgba(255,255,255,0.55)"/>
+      </g>
     </svg>`,
     wings:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
       <path d="M70,90 Q38,60 8,72 Q16,100 50,96 Q62,94 70,90Z" fill="white" opacity="0.82"/>
