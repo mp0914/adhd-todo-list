@@ -48,17 +48,28 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #level-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 13px;font-size:12px;color:var(--purple);font-weight:700;letter-spacing:0.04em;flex-shrink:0;}
 #btn-menu{background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--dim);width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:background 0.15s,border-color 0.15s;}
 #btn-menu:active{background:var(--surface2);border-color:rgba(255,255,255,0.16);}
-#pet-stage{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:4px 20px 2px;position:relative;z-index:10;}
-#pet-bg{width:176px;height:176px;border-radius:50%;background:radial-gradient(circle,var(--surface2) 55%,transparent 100%);display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:8px;transition:background 0.5s;overflow:hidden;}
+#pet-stage{flex-shrink:0;display:flex;flex-direction:column;padding:0 20px 6px;position:relative;z-index:10;}
+#pet-bg{width:100%;height:160px;border-radius:var(--r);background:var(--surface2);display:flex;align-items:center;justify-content:center;position:relative;transition:background 0.5s;overflow:hidden;}
+/* ── background scenes ─────────────────────────────────────── */
 #pet-bg.rainbow-bg{background:var(--bg2);}
-#pet-bg.rainbow-bg::before{content:'';position:absolute;width:280px;height:280px;top:50%;left:50%;transform:translate(-50%,-50%) rotate(0deg);background:conic-gradient(from 0deg,#ff6666 0%,#ffaa44 14%,#ffee44 28%,#66dd66 43%,#44aaff 57%,#aa55ff 71%,#ff55cc 85%,#ff6666 100%);opacity:0.75;animation:rainbow-spin 5s linear infinite;pointer-events:none;z-index:0;}
-#pet-svg-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
+#pet-bg.rainbow-bg::before{content:'';position:absolute;width:600px;height:600px;top:50%;left:50%;transform:translate(-50%,-50%) rotate(0deg);background:conic-gradient(from 0deg,#ff6666 0%,#ffaa44 14%,#ffee44 28%,#66dd66 43%,#44aaff 57%,#aa55ff 71%,#ff55cc 85%,#ff6666 100%);opacity:0.75;animation:rainbow-spin 5s linear infinite;pointer-events:none;z-index:0;}
+#pet-bg.nightsky-bg{background:#0a0f1e;}
+#pet-bg.nightsky-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(1px 1px at 8% 18%,rgba(255,255,255,0.95) 0%,transparent 100%),radial-gradient(1px 1px at 22% 12%,rgba(255,255,255,0.7) 0%,transparent 100%),radial-gradient(2px 2px at 38% 28%,rgba(255,255,255,0.85) 0%,transparent 100%),radial-gradient(1px 1px at 52% 8%,rgba(255,255,255,0.75) 0%,transparent 100%),radial-gradient(1px 1px at 68% 22%,rgba(255,255,255,0.9) 0%,transparent 100%),radial-gradient(2px 2px at 80% 14%,rgba(255,255,255,0.65) 0%,transparent 100%),radial-gradient(1px 1px at 92% 30%,rgba(255,255,255,0.8) 0%,transparent 100%),radial-gradient(1px 1px at 14% 48%,rgba(255,255,255,0.7) 0%,transparent 100%),radial-gradient(1px 1px at 44% 55%,rgba(255,255,255,0.85) 0%,transparent 100%),radial-gradient(1px 1px at 76% 50%,rgba(255,255,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 60% 70%,rgba(255,255,255,0.75) 0%,transparent 100%),radial-gradient(1px 1px at 28% 80%,rgba(255,255,255,0.65) 0%,transparent 100%),radial-gradient(30px 20px at 75% 35%,rgba(255,240,180,0.12) 0%,transparent 100%),linear-gradient(180deg,#0d1b3a 0%,#0a0f1e 100%);pointer-events:none;z-index:0;}
+#pet-bg.forest-bg{background:#0e2010;}
+#pet-bg.forest-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#1a3d1a 0%,#2a5e2a 35%,#1e4a1e 65%,#0e2010 100%),radial-gradient(ellipse at 20% 100%,#2d6e2d 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,#246424 0%,transparent 50%);pointer-events:none;z-index:0;}
+#pet-bg.ocean-bg{background:#071e34;}
+#pet-bg.ocean-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#1e6fa5 0%,#1a5a8a 30%,#0f3d6e 65%,#071e34 100%);pointer-events:none;z-index:0;}
+#pet-bg.sunset-bg{background:#1a0820;}
+#pet-bg.sunset-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#ff6b35 0%,#f7278e 38%,#7928ca 70%,#1a0820 100%);pointer-events:none;z-index:0;}
+#pet-bg.space-bg{background:#050510;}
+#pet-bg.space-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(1px 1px at 5% 10%,rgba(255,255,255,0.95) 0%,transparent 100%),radial-gradient(1px 1px at 18% 5%,rgba(255,255,255,0.8) 0%,transparent 100%),radial-gradient(2px 2px at 35% 20%,rgba(255,255,255,0.9) 0%,transparent 100%),radial-gradient(1px 1px at 55% 8%,rgba(255,255,255,0.7) 0%,transparent 100%),radial-gradient(1px 1px at 72% 18%,rgba(255,255,255,0.85) 0%,transparent 100%),radial-gradient(1px 1px at 88% 12%,rgba(255,255,255,0.75) 0%,transparent 100%),radial-gradient(1px 1px at 12% 55%,rgba(255,255,255,0.65) 0%,transparent 100%),radial-gradient(1px 1px at 48% 60%,rgba(255,255,255,0.8) 0%,transparent 100%),radial-gradient(1px 1px at 78% 48%,rgba(255,255,255,0.7) 0%,transparent 100%),radial-gradient(1px 1px at 92% 65%,rgba(255,255,255,0.6) 0%,transparent 100%),radial-gradient(1px 1px at 30% 78%,rgba(255,255,255,0.75) 0%,transparent 100%),radial-gradient(1px 1px at 65% 82%,rgba(255,255,255,0.65) 0%,transparent 100%),radial-gradient(ellipse at 35% 50%,rgba(90,40,180,0.35) 0%,transparent 55%),radial-gradient(ellipse at 70% 40%,rgba(40,80,180,0.2) 0%,transparent 45%),linear-gradient(135deg,#05050f 0%,#0f0a28 50%,#05050f 100%);pointer-events:none;z-index:0;}
 @keyframes rainbow-spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+#pet-svg-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
 #pet-svg-wrap svg{width:140px;height:140px;overflow:visible;}
 #pet-svg-wrap.idle{animation:petIdle 2.8s ease-in-out infinite;}
 #pet-svg-wrap.bounce{animation:petBounce 0.45s ease;}
 #pet-svg-wrap.celebrate{animation:petCelebrate 0.65s ease;}
-#mood-label{position:absolute;top:-4px;right:-14px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:11px;color:var(--dim);}
+#mood-label{position:absolute;top:8px;right:10px;background:rgba(15,14,23,0.72);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:11px;color:var(--dim);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
 #stat-bars{width:100%;padding:0 22px;display:flex;flex-direction:column;gap:7px;flex-shrink:0;position:relative;z-index:10;}
 .stat-row{display:flex;align-items:center;gap:9px;}
 .stat-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0;}
@@ -275,8 +286,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   body{background:var(--bg2);}
   .screen{max-width:440px;border-left:1px solid var(--border);border-right:1px solid var(--border);box-shadow:0 0 80px rgba(0,0,0,0.8);}
   #topbar{padding-top:20px;}
-  #pet-bg{width:160px;height:160px;}
-  #pet-svg-wrap,#pet-svg-wrap svg{width:124px;height:124px;}
   #task-card{min-height:100px;padding:22px 24px;}
   .btn{min-height:48px;font-size:14px;}
   #actions{padding:12px 26px 8px;gap:12px;}
@@ -285,9 +294,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 }
 /* ── compact-height (iPhone SE, shorter iOS devices) ─────────────── */
 @media(max-height:780px){
-  #pet-bg{width:148px;height:148px;margin-bottom:4px;}
-  #pet-svg-wrap,#pet-svg-wrap svg{width:114px;height:114px;}
-  #pet-stage{padding:2px 20px 0;}
+  #pet-bg{height:130px;}
+  #pet-svg-wrap,#pet-svg-wrap svg{width:108px;height:108px;}
+  #pet-stage{padding:0 20px 4px;}
   #stat-bars{padding:0 22px;gap:4px;}
   #xp-row{padding:4px 22px 0;}
   #items-row{padding:3px 22px 0;}
@@ -299,8 +308,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   #bottom-bar{padding:4px 22px;padding-bottom:max(10px,env(safe-area-inset-bottom));}
 }
 @media(max-height:680px){
-  #pet-bg{width:118px;height:118px;margin-bottom:2px;}
-  #pet-svg-wrap,#pet-svg-wrap svg{width:92px;height:92px;}
+  #pet-bg{height:100px;}
+  #pet-svg-wrap,#pet-svg-wrap svg{width:84px;height:84px;}
   #stat-bars{gap:3px;}
   .stat-track{height:5px;}
   #items-row{padding:2px 22px 0;}
@@ -364,7 +373,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v10</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v11</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -878,7 +887,7 @@ function getItemSVG(itemId) {
       <text x="114" y="92" font-size="16">✨</text>
       <text x="54" y="8" font-size="11">⭐</text>
     </svg>`,
-    rainbow:'',
+    rainbow:'',nightsky:'',forest:'',ocean:'',sunset:'',space:'',
     sword:`<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:140px;height:140px;pointer-events:none">
       <rect x="113" y="28" width="5" height="52" rx="2.5" fill="#b0bec5"/>
       <polygon points="115.5,12 110,28 121,28" fill="#eceff1"/>
@@ -1002,13 +1011,18 @@ const ITEMS=[
   {id:'bamboo',    name:'Bamboo',       emoji:'🎋',xp:600,petOnly:'redpanda'},
   {id:'crown',     name:'Crown',        emoji:'👑',xp:750},
   {id:'sparkle',   name:'Sparkle',      emoji:'✨',xp:1125},
-  {id:'rainbow',   name:'Rainbow Bg',   emoji:'🌈',xp:1500},
+  {id:'rainbow',   name:'Rainbow Bg',   emoji:'🌈',xp:1500,sceneBg:true},
   {id:'sword',     name:'Sword',        emoji:'🗡️', xp:2000},
+  {id:'nightsky',  name:'Night Sky',    emoji:'🌙', xp:2500,sceneBg:true},
   {id:'wings',     name:'Wings',        emoji:'🪽', xp:2750},
   {id:'halo',      name:'Halo',         emoji:'😇', xp:3500},
+  {id:'forest',    name:'Forest',       emoji:'🌲', xp:4000,sceneBg:true},
   {id:'aura',      name:'Aura',         emoji:'🌟', xp:4500},
   {id:'mask',      name:'Hero Mask',    emoji:'🎭', xp:5500},
+  {id:'ocean',     name:'Ocean',        emoji:'🌊', xp:6000,sceneBg:true},
   {id:'gem',       name:'Gems',         emoji:'💎', xp:7000},
+  {id:'sunset',    name:'Sunset',       emoji:'🌅', xp:8000,sceneBg:true},
+  {id:'space',     name:'Space',        emoji:'🚀', xp:10000,sceneBg:true},
 ];
 
 // ═══ STATE ═══════════════════════════════════════════════════
@@ -1143,18 +1157,21 @@ function getMood(){
   if(p.happy>65)return 'happy';
   return 'neutral';
 }
+const SCENE_IDS=['rainbow','nightsky','forest','ocean','sunset','space'];
 function renderPet(mood){
   if(!S.activePet)return;
   const p=AP(),m=mood||getMood();
   const stage=getEvolutionStage(p.xp);
   $wrap.innerHTML=PETS[S.activePet].getSVG(m);
   const eq=Array.isArray(p.equipped)?p.equipped:[];
-  eq.filter(id=>id!=='rainbow').forEach(id=>{$wrap.innerHTML+=getItemSVG(id);});
+  eq.filter(id=>!SCENE_IDS.includes(id)).forEach(id=>{$wrap.innerHTML+=getItemSVG(id);});
   $wrap.innerHTML+=getEvolutionOverlay(stage);
   $wrap.style.filter=stage===3
     ?'drop-shadow(0 0 10px rgba(179,136,255,0.85)) drop-shadow(0 0 5px rgba(255,137,6,0.4))'
     :stage===2?'drop-shadow(0 0 8px rgba(255,215,0,0.75))':'';
-  $petBg.classList.toggle('rainbow-bg',eq.includes('rainbow'));
+  SCENE_IDS.forEach(id=>$petBg.classList.remove(id+'-bg'));
+  const equippedScene=eq.find(id=>SCENE_IDS.includes(id));
+  if(equippedScene)$petBg.classList.add(equippedScene+'-bg');
 }
 function triggerPetAnim(type){
   $wrap.classList.remove('idle','bounce','celebrate');
@@ -1581,8 +1598,12 @@ function renderItems(){
     if(ul)chip.addEventListener('click',()=>{
       const cur=Array.isArray(p.equipped)?[...p.equipped]:[];
       if(isEq){p.equipped=cur.filter(id=>id!==item.id);}
-      else if(cur.length<3){p.equipped=[...cur,item.id];}
-      else{showFeedback('Max 3 items equipped!');return;}
+      else if(item.sceneBg){
+        // scene bg items auto-replace each other (no slot cost)
+        p.equipped=[...cur.filter(id=>!ITEMS.find(x=>x.id===id&&x.sceneBg)),item.id];
+      }else if(cur.filter(id=>!ITEMS.find(x=>x.id===id&&x.sceneBg)).length<3){
+        p.equipped=[...cur,item.id];
+      }else{showFeedback('Max 3 items equipped!');return;}
       save();renderItems();renderPet(getMood());
     });
     row.appendChild(chip);
