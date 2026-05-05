@@ -100,9 +100,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;min-height:88px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;cursor:pointer;overflow:hidden;}
 #task-card.pressing{transform:scale(0.97);box-shadow:0 4px 16px rgba(0,0,0,0.4);}
 #task-card.rich-card{align-items:flex-start;justify-content:flex-start;text-align:left;}
-#task-text{font-family:'Pixelify Sans',monospace;font-size:clamp(16px,5vw,22px);color:var(--text);line-height:1.4;letter-spacing:0.3px;overflow-y:auto;max-height:130px;width:100%;-webkit-overflow-scrolling:touch;}
-#task-text.empty{color:var(--muted);font-size:15px;font-family:'DM Sans',sans-serif;font-style:italic;font-weight:400;letter-spacing:0;}
-#task-text.rich{font-family:'DM Sans',sans-serif;font-size:14px;letter-spacing:0;line-height:1.55;}
+#task-text{font-family:'DM Sans',sans-serif;font-size:clamp(17px,5vw,22px);font-weight:700;color:var(--text);line-height:1.4;letter-spacing:0.01em;overflow-y:auto;max-height:130px;width:100%;-webkit-overflow-scrolling:touch;}
+#task-text.empty{color:var(--muted);font-size:15px;font-weight:400;font-style:italic;letter-spacing:0;}
+#task-text.rich{font-size:14px;font-weight:400;letter-spacing:0;line-height:1.55;}
 /* Note formatting */
 .note-p{margin-bottom:2px;word-break:break-word;}
 .note-gap{height:6px;display:block;}
@@ -373,7 +373,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v11</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v12</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -1683,12 +1683,9 @@ function initTaskDrag(listEl){
       const insertAt=allChildren.slice(0,spacerPos).filter(el=>el.classList.contains('task-item')&&!el.classList.contains('is-dragging')).length;
       const[task]=S.tasks.splice(drag.idx,1);
       S.tasks.splice(insertAt,0,task);
-      const old=drag.idx,nw=insertAt;
-      if(S.idx===old)S.idx=nw;
-      else if(old<nw&&S.idx>old&&S.idx<=nw)S.idx--;
-      else if(old>nw&&S.idx<old&&S.idx>=nw)S.idx++;
+      S.idx=insertAt;
       drag.spacer.remove();drag.item.classList.remove('is-dragging');drag.item.style.cssText='';
-      save();render();renderTasksDrawer();
+      save();render();tasksDr.close();
     }
     document.addEventListener('pointermove',onMove);document.addEventListener('pointerup',onUp);
   });
@@ -1728,7 +1725,7 @@ function renderTasksDrawer(){
       save();render();renderTasksDrawer();
     }));
     taskList.querySelectorAll('.t-focus').forEach(b=>b.addEventListener('click',e=>{
-      S.idx=parseInt(e.currentTarget.dataset.i);save();render();renderTasksDrawer();
+      S.idx=parseInt(e.currentTarget.dataset.i);save();render();tasksDr.close();
     }));
     taskList.querySelectorAll('.t-text').forEach(span=>span.addEventListener('click',e=>{
       const i=parseInt(e.currentTarget.dataset.i);S.idx=i;tasksDr.close();openNoteModal(true);
