@@ -375,7 +375,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v18</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v19</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -1836,6 +1836,27 @@ function updateMainFmtBar(){
   const tmap={cb:'cb',ul:'bullet',ol:'num'};
   document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(x=>x.classList.toggle('active',x.dataset.fmt===tmap[b.t]));
 }
+// Update only the row indicator — never rebuild the DOM, so the textarea
+// keeps focus, the keyboard stays open, and the page doesn't jump.
+function updateMainRowIndicator(i){
+  const editor=document.getElementById('task-input');if(!editor)return;
+  const rows=editor.querySelectorAll('.be-row');
+  const row=rows[i];if(!row)return;
+  const ind=row.querySelector('.be-ind');if(!ind)return;
+  const b=_mainBlocks[i];ind.innerHTML='';
+  if(b.t==='cb'){
+    const box=document.createElement('span');box.className='be-cb-box'+(b.c?' checked':'');
+    box.addEventListener('pointerdown',e=>e.preventDefault());
+    box.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();_mainBlocks[i].c=!_mainBlocks[i].c;updateMainRowIndicator(i);});
+    ind.appendChild(box);
+  }else if(b.t==='ul'){
+    ind.innerHTML='<span class="be-dot"></span>';
+  }else if(b.t==='ol'){
+    const n=document.createElement('span');n.className='be-num';n.textContent=(b.n||i+1)+'.';ind.appendChild(n);
+  }else{
+    ind.innerHTML='<span class="be-text-ind"></span>';
+  }
+}
 function toggleMainFmt(type){
   const b=_mainBlocks[_mainFocused];if(!b)return;
   const tmap={cb:'cb',bullet:'ul',num:'ol'};
@@ -1843,7 +1864,8 @@ function toggleMainFmt(type){
   b.t=b.t===newT?'text':newT;
   if(b.t==='ol')b.n=_mainFocused+1;
   if(b.t==='cb'&&b.c==null)b.c=false;
-  renderMainBlocks();focusMainBe(_mainFocused,true);
+  updateMainRowIndicator(_mainFocused);
+  updateMainFmtBar();
 }
 // Simple prefix toggle for drawer input
 function toggleDrawerFmt(type){
@@ -1997,7 +2019,13 @@ function drawerAddTask(){
 }
 document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask);
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
-document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleMainFmt(b.dataset.fmt)));
+document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>{
+  // Prevent the button from stealing focus from the textarea — keeps the
+  // mobile keyboard up and prevents the page from jumping.
+  b.addEventListener('pointerdown',e=>e.preventDefault());
+  b.addEventListener('mousedown',e=>e.preventDefault());
+  b.addEventListener('click',e=>{e.preventDefault();toggleMainFmt(b.dataset.fmt);});
+});
 document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleDrawerFmt(b.dataset.fmt)));
 // Initial render of the WYSIWYG block editor
 renderMainBlocks();
