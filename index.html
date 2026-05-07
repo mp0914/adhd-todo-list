@@ -166,7 +166,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
 .add-fmt-btn:active{opacity:0.6;}
 #add-row{flex:1;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px 5px 5px 14px;align-items:flex-end;}
-#task-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;padding:8px 0;min-height:64px;max-height:120px;caret-color:var(--accent);resize:none;overflow-y:auto;line-height:1.45;}
+#task-input{flex:1;min-height:48px;max-height:160px;overflow-y:auto;padding:2px 0;-webkit-overflow-scrolling:touch;}
+#task-input .be-row{padding:1px 0;}
+#task-input .be-ind{padding-top:8px;}
+#task-input .be-input{font-size:16px;min-height:30px;padding:3px 0;}
 /* Block editor (note modal edit mode) */
 .block-editor{display:flex;flex-direction:column;gap:2px;}
 .be-row{display:flex;align-items:flex-start;gap:8px;padding:2px 0;}
@@ -179,7 +182,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .be-text-ind{width:3px;height:14px;border-radius:2px;background:var(--border);display:block;}
 .be-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;resize:none;caret-color:var(--accent);padding:5px 0;min-height:34px;max-height:300px;overflow-y:hidden;}
 .be-input::placeholder{color:var(--muted);}
-#task-input::placeholder{color:var(--muted);}
 #btn-add{width:40px;height:40px;min-height:unset;flex:none;background:var(--accent);color:#1a0a00;border-radius:9px;font-size:20px;font-weight:700;flex-shrink:0;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.3s;}
 .overlay.show{opacity:1;pointer-events:all;}
@@ -302,7 +304,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   #items-row{padding:3px 22px 0;}
   #chain-bar{padding:3px 22px 1px;}
   #focus-label{padding:6px 22px 2px;}
-  #task-input{min-height:40px;}
+  #task-input{min-height:38px;max-height:120px;}
   .btn{min-height:46px;}
   #actions{padding:6px 22px 4px;}
   #bottom-bar{padding:4px 22px;padding-bottom:max(10px,env(safe-area-inset-bottom));}
@@ -373,7 +375,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v16</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v17</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -391,7 +393,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <button class="add-fmt-btn" data-fmt="num">1. list</button>
     </div>
     <div id="add-row">
-      <textarea id="task-input" placeholder="What needs doing?" autocomplete="off" autocorrect="off" spellcheck="false" rows="2"></textarea>
+      <div id="task-input" class="block-editor"></div>
       <button class="btn" id="btn-add">+</button>
     </div>
   </div>
@@ -1778,30 +1780,70 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 const FMT_PREFIX={cb:'- [ ] ',bullet:'- ',num:'1. '};
 let _fmtDrawer=null;
 function autoResizeTA(ta){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,120)+'px';}
-// Line-aware format toggle for textarea (main screen)
+// ─── MAIN INPUT BLOCK EDITOR (WYSIWYG) ──────────────────────────
+let _mainBlocks=[{t:'text',v:''}],_mainFocused=0;
+function renderMainBlocks(){
+  const editor=document.getElementById('task-input');if(!editor)return;
+  editor.innerHTML='';
+  _mainBlocks.forEach((b,i)=>{
+    const row=document.createElement('div');row.className='be-row';
+    const ind=document.createElement('div');ind.className='be-ind';
+    if(b.t==='cb'){
+      const box=document.createElement('span');box.className='be-cb-box'+(b.c?' checked':'');
+      box.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();_mainBlocks[i].c=!_mainBlocks[i].c;renderMainBlocks();focusMainBe(i);});
+      ind.appendChild(box);
+    }else if(b.t==='ul'){
+      ind.innerHTML='<span class="be-dot"></span>';
+    }else if(b.t==='ol'){
+      const n=document.createElement('span');n.className='be-num';n.textContent=(b.n||i+1)+'.';ind.appendChild(n);
+    }else{
+      ind.innerHTML='<span class="be-text-ind"></span>';
+    }
+    const inp=document.createElement('textarea');inp.className='be-input';inp.rows=1;
+    inp.value=b.v||'';if(i===0&&!b.v)inp.placeholder='What needs doing?';
+    inp.autocomplete='off';inp.autocorrect='off';inp.spellcheck=false;
+    inp.addEventListener('input',()=>{_mainBlocks[i].v=inp.value;autoResizeTA(inp);});
+    inp.addEventListener('focus',()=>{_mainFocused=i;updateMainFmtBar();});
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){
+        e.preventDefault();
+        const nb={t:b.t==='text'?'text':b.t,v:'',c:false};
+        if(b.t==='ol')nb.n=(b.n||i+1)+1;
+        _mainBlocks.splice(i+1,0,nb);_mainFocused=i+1;
+        renderMainBlocks();focusMainBe(i+1);
+      }else if(e.key==='Backspace'&&inp.value===''&&_mainBlocks.length>1){
+        e.preventDefault();
+        _mainBlocks.splice(i,1);
+        const fi=Math.max(0,i-1);_mainFocused=fi;
+        renderMainBlocks();focusMainBe(fi,true);
+      }
+    });
+    row.appendChild(ind);row.appendChild(inp);editor.appendChild(row);
+    autoResizeTA(inp);
+  });
+  updateMainFmtBar();
+}
+function focusMainBe(idx,atEnd=false){
+  setTimeout(()=>{
+    const inputs=document.getElementById('task-input')?.querySelectorAll('.be-input');
+    if(!inputs||!inputs[idx])return;
+    inputs[idx].focus();
+    if(atEnd)inputs[idx].selectionStart=inputs[idx].selectionEnd=inputs[idx].value.length;
+  },0);
+}
+function updateMainFmtBar(){
+  const b=_mainBlocks[_mainFocused];if(!b)return;
+  const tmap={cb:'cb',ul:'bullet',ol:'num'};
+  document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(x=>x.classList.toggle('active',x.dataset.fmt===tmap[b.t]));
+}
 function toggleMainFmt(type){
-  const inp=document.getElementById('task-input');
-  const s=inp.selectionStart||0;
-  const lineStart=inp.value.lastIndexOf('\n',s-1)+1;
-  const lineEndIdx=inp.value.indexOf('\n',s);
-  const lineEnd=lineEndIdx===-1?inp.value.length:lineEndIdx;
-  const lineText=inp.value.slice(lineStart,lineEnd);
-  const cur=getListPrefix(lineText);
-  const curType=listPrefixType(cur);
-  const newPfx=FMT_PREFIX[type];
-  if(curType===type&&cur){
-    inp.value=inp.value.slice(0,lineStart)+lineText.slice(cur.length)+inp.value.slice(lineEnd);
-    inp.selectionStart=inp.selectionEnd=Math.max(lineStart,s-cur.length);
-  }else if(cur){
-    inp.value=inp.value.slice(0,lineStart)+newPfx+lineText.slice(cur.length)+inp.value.slice(lineEnd);
-    inp.selectionStart=inp.selectionEnd=lineStart+newPfx.length+Math.max(0,s-lineStart-cur.length);
-  }else{
-    inp.value=inp.value.slice(0,lineStart)+newPfx+inp.value.slice(lineStart);
-    inp.selectionStart=inp.selectionEnd=s+newPfx.length;
-  }
-  const activeFmt=curType===type?null:type;
-  document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.classList.toggle('active',b.dataset.fmt===activeFmt));
-  inp.focus();autoResizeTA(inp);
+  const b=_mainBlocks[_mainFocused];if(!b)return;
+  const tmap={cb:'cb',bullet:'ul',num:'ol'};
+  const newT=tmap[type];
+  b.t=b.t===newT?'text':newT;
+  if(b.t==='ol')b.n=_mainFocused+1;
+  if(b.t==='cb'&&b.c==null)b.c=false;
+  renderMainBlocks();focusMainBe(_mainFocused,true);
 }
 // Simple prefix toggle for drawer input
 function toggleDrawerFmt(type){
@@ -1817,13 +1859,19 @@ function toggleDrawerFmt(type){
 }
 // ═══ ACTIONS ═════════════════════════════════════════════════
 function addTask(){
-  const inp=document.getElementById('task-input');
-  const val=inp.value.trim();if(!val)return;
-  S.tasks.push(textToBlocks(val));S.chainTotal++;
-  inp.value='';autoResizeTA(inp);
+  const blocks=_mainBlocks
+    .map(b=>({...b,v:(b.v||'').trim()}))
+    .filter(b=>b.t!=='text'||b.v);
+  if(!blocks.length)return;
+  // Renumber ordered-list blocks sequentially
+  let n=0;blocks.forEach(b=>{if(b.t==='ol')b.n=++n;});
+  S.tasks.push(blocks);S.chainTotal++;
+  _mainBlocks=[{t:'text',v:''}];_mainFocused=0;
+  renderMainBlocks();
   document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.classList.remove('active'));
-  save();render();const b=document.getElementById('btn-add');
-  b.style.transform='scale(0.82)';setTimeout(()=>b.style.transform='',120);
+  save();render();
+  const btn=document.getElementById('btn-add');
+  btn.style.transform='scale(0.82)';setTimeout(()=>btn.style.transform='',120);
 }
 function completeTask(){
   if(!S.tasks.length)return;
@@ -1951,15 +1999,8 @@ document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask
 document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
 document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleMainFmt(b.dataset.fmt)));
 document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleDrawerFmt(b.dataset.fmt)));
-// Textarea: smart Enter (continues list) — plain Enter = newline, + = submit
-const _mainTA=document.getElementById('task-input');
-_mainTA.addEventListener('keydown',e=>{if(e.key==='Enter')handleNoteEnter(e,_mainTA);});
-_mainTA.addEventListener('input',e=>{
-  // Mobile keyboards often fire inputType:'insertLineBreak'/'insertParagraph' for Enter
-  // instead of a keydown event — handle list continuation here as a reliable fallback
-  if(e.inputType==='insertLineBreak'||e.inputType==='insertParagraph')handleListContinueInput(_mainTA);
-  autoResizeTA(_mainTA);
-});
+// Initial render of the WYSIWYG block editor
+renderMainBlocks();
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
   const p=AP();
