@@ -150,7 +150,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #note-modal.open{transform:translateX(-50%) translateY(0);}
 #note-modal-head{display:flex;align-items:center;gap:10px;padding:14px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
 #note-modal-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;flex:1;}
-#note-modal-close{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--dim);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+#note-modal-close,#note-modal-copy,#note-modal-share{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--dim);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:background 0.15s,border-color 0.15s;}
+#note-modal-copy:active,#note-modal-share:active,#note-modal-close:active{background:var(--surface2);border-color:rgba(255,255,255,0.16);}
 #note-modal-toolbar{display:flex;gap:6px;padding:8px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .fmt-btn:active{opacity:0.6;}
@@ -383,7 +384,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v21</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v22</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -500,7 +501,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 <div id="note-modal">
   <div id="note-modal-head">
     <span id="note-modal-label">current task</span>
-    <button id="note-modal-close">✕</button>
+    <button id="note-modal-copy" title="Copy whole note" aria-label="Copy">📋</button>
+    <button id="note-modal-share" title="Share whole note" aria-label="Share">📤</button>
+    <button id="note-modal-close" aria-label="Close">✕</button>
   </div>
   <div id="note-modal-toolbar">
     <button class="fmt-btn" id="fmt-cb">☑ checkbox</button>
@@ -1316,6 +1319,50 @@ function blocksToText(blocks){
     return b.v;
   }).join('\n');
 }
+// Human-friendly version for share / clipboard — uses real bullets, not markdown.
+function blocksToShareText(blocks){
+  return blocks.map(b=>{
+    if(b.t==='cb')return(b.c?'☑':'☐')+' '+b.v;
+    if(b.t==='ul')return'• '+b.v;
+    if(b.t==='ol')return(b.n||1)+'. '+b.v;
+    return b.v;
+  }).join('\n');
+}
+// Note that's currently being viewed/edited. In edit mode use the live
+// _nmBlocks; otherwise use the saved task at S.idx.
+function currentNoteBlocks(){
+  if(_nmEdit&&_nmBlocks)return _nmBlocks;
+  return S.tasks[S.idx]||[];
+}
+async function copyCurrentNote(){
+  const blocks=currentNoteBlocks();
+  if(!blocks.length)return;
+  const text=blocksToShareText(blocks);
+  try{
+    await navigator.clipboard.writeText(text);
+    showFeedback('📋 Copied!');
+  }catch(e){
+    // Fallback: legacy execCommand via temporary textarea
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.cssText='position:fixed;top:-1000px;opacity:0;';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');showFeedback('📋 Copied!');}
+    catch(_){showFeedback('Copy failed');}
+    finally{ta.remove();}
+  }
+}
+async function shareCurrentNote(){
+  const blocks=currentNoteBlocks();
+  if(!blocks.length)return;
+  const text=blocksToShareText(blocks);
+  const title=(blocks[0]?.v||'My Note').slice(0,60);
+  if(navigator.share){
+    try{await navigator.share({title,text});return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  // Fallback: copy to clipboard so the user can paste anywhere
+  await copyCurrentNote();
+}
 // renderBlocks: returns a DocumentFragment — direct DOM build so handlers attach immediately
 let _cbUid=0;
 function renderBlocks(blocks,taskIdx){
@@ -1408,6 +1455,12 @@ function renderBlockEditor(){
         _nmBlocks.splice(i,1);
         const fi=Math.max(0,i-1);_nmFocused=fi;
         renderBlockEditor();focusBeInput(fi,true);
+      }else if((e.ctrlKey||e.metaKey)&&(e.key==='a'||e.key==='A')){
+        // Cmd/Ctrl+A: first press selects this textarea (default).
+        // If the textarea is ALREADY fully selected, copy the entire note
+        // to the clipboard so the user can paste all of it elsewhere.
+        const allSelected=inp.selectionStart===0&&inp.selectionEnd===inp.value.length&&inp.value.length>0;
+        if(allSelected){e.preventDefault();copyCurrentNote();}
       }
     });
     row.appendChild(ind);row.appendChild(inp);editor.appendChild(row);
@@ -2079,6 +2132,8 @@ document.getElementById('task-card').addEventListener('click',e=>{
   openNoteModal();
 });
 document.getElementById('note-modal-close').addEventListener('click',closeNoteModal);
+document.getElementById('note-modal-copy').addEventListener('click',copyCurrentNote);
+document.getElementById('note-modal-share').addEventListener('click',shareCurrentNote);
 document.getElementById('note-overlay').addEventListener('click',closeNoteModal);
 document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
