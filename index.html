@@ -49,7 +49,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #screen-main{background:var(--bg);justify-content:flex-start;}
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px 8px;position:relative;z-index:10;flex-shrink:0;gap:10px;}
 #pet-name-label{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;color:var(--accent);letter-spacing:0.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
-#level-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 13px;font-size:12px;color:var(--purple);font-weight:700;letter-spacing:0.04em;flex-shrink:0;}
+#level-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:12px;color:var(--purple);font-weight:700;letter-spacing:0.04em;flex-shrink:0;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent;transition:background 0.15s,border-color 0.15s;}
+#level-badge:active{background:var(--surface);border-color:rgba(179,136,255,0.4);}
+#level-badge::after{content:'›';margin-left:5px;opacity:0.5;font-weight:400;}
 #btn-menu{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--dim);width:40px;height:40px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:background 0.15s,border-color 0.15s;}
 #btn-menu:active{background:var(--surface2);border-color:rgba(255,255,255,0.16);}
 #pet-stage{flex-shrink:0;display:flex;flex-direction:column;padding:0 22px 6px;position:relative;z-index:10;}
@@ -200,13 +202,43 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .btn:disabled{opacity:0.25;cursor:default;}
 #btn-done{background:var(--green);color:#0a1f12;font-weight:700;}
 #btn-skip{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
-#bottom-bar{display:flex;flex-direction:column;gap:5px;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
+#bottom-cta{padding:8px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
+#btn-add-cta{width:100%;min-height:56px;background:var(--accent);color:#1a0a00;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:0.02em;-webkit-tap-highlight-color:transparent;transition:transform 0.12s,opacity 0.12s;display:flex;align-items:center;justify-content:center;gap:6px;}
+#btn-add-cta:active{transform:scale(0.97);opacity:0.92;}
+/* Card meta row: reminder chip + swipe hint */
+#task-card-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 4px 0;}
+.card-chip{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--dim);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;transition:background 0.15s,border-color 0.15s,color 0.15s;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
+.card-chip:active{background:var(--surface);border-color:var(--accent);color:var(--accent);}
+/* Progress drawer */
+.prog-section-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:8px;}
+#progress-xp-section #prog-xp-track{height:10px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+#progress-xp-section #prog-xp-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:100px;transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1);}
+#prog-xp-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--dim);font-weight:600;}
+#prog-xp-meta #prog-xp-next{color:var(--purple);}
+#progress-drawer #items-row{padding:0;margin-top:0;display:flex;flex-wrap:wrap;gap:6px;overflow:visible;}
+#progress-drawer #chain-bar{padding:0;}
+#progress-drawer #stat-bars{padding:0;}
+/* Reminder sheet — bottom-sheet style independent of note modal */
+#reminder-sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);border-radius:24px 24px 0 0;z-index:560;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);padding:16px 22px;padding-bottom:max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;}
+#reminder-sheet.open{transform:translateX(-50%) translateY(0);}
+#reminder-overlay{z-index:555;}
+/* Welcome intro card */
+#intro-overlay{z-index:700;background:rgba(0,0,0,0.78);}
+#intro-card{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.94);width:90%;max-width:380px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:28px 24px 24px;z-index:710;opacity:0;pointer-events:none;transition:opacity 0.3s,transform 0.3s;box-shadow:var(--shadow);}
+#intro-card.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:all;}
+.intro-emoji{font-size:42px;text-align:center;margin-bottom:6px;}
+.intro-title{font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:var(--accent);text-align:center;margin-bottom:18px;}
+.intro-body{display:flex;flex-direction:column;gap:14px;margin-bottom:22px;}
+.intro-step{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:var(--dim);line-height:1.5;}
+.intro-step span{flex-shrink:0;width:24px;height:24px;border-radius:100px;background:rgba(255,137,6,0.15);border:1px solid rgba(255,137,6,0.4);color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.intro-step strong{color:var(--text);font-weight:600;}
+#intro-got-it{min-height:48px;font-size:15px;}
 .add-fmt-bar{display:flex;gap:5px;}
 /* Main format bar is hidden by default; appears only when the task input
    has focus (CSS :focus-within keeps it visible while format buttons are
    tapped because we preventDefault their pointerdown). */
 #main-fmt-bar{display:none;}
-#bottom-bar:focus-within #main-fmt-bar{display:flex;}
+#drawer-add-row:focus-within #main-fmt-bar{display:flex;}
 .add-fmt-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-xs);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 10px;min-height:36px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;text-align:center;display:flex;align-items:center;justify-content:center;}
 .add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
 .add-fmt-btn:active{opacity:0.6;}
@@ -258,11 +290,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .t-cur-label{font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex-shrink:0;padding:0 4px;}
 .t-del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
 .t-edit-input{flex:1;background:var(--surface2);border:1.5px solid var(--accent);border-radius:var(--r-xs);padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;min-width:0;}
-#drawer-add-row{display:flex;flex-direction:column;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
-#drawer-task-input{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;caret-color:var(--accent);transition:border-color 0.2s;}
-#drawer-task-input:focus{border-color:var(--accent);}
-#drawer-task-input::placeholder{color:var(--muted);}
-#drawer-add-btn{width:44px;height:44px;background:var(--accent);color:#1a0a00;border:none;border-radius:var(--r-xs);font-size:20px;font-weight:700;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+/* Drawer add-row: hosts the WYSIWYG editor at the bottom of the tasks drawer */
+#drawer-add-row{display:flex;flex-direction:column;gap:6px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
 #feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 24px;pointer-events:none;opacity:0;z-index:500;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.6);transition:opacity 0.15s,transform 0.15s;max-width:82vw;letter-spacing:0.01em;}
 #feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
 #levelup{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;border-radius:100px;padding:10px 20px;font-size:13px;font-weight:700;letter-spacing:0.03em;box-shadow:0 8px 24px rgba(124,58,237,0.4);opacity:0;pointer-events:none;z-index:500;transition:opacity 0.3s,transform 0.3s;}
@@ -345,28 +374,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   #pet-bg{height:130px;}
   #pet-svg-wrap{width:108px;height:108px;}
   #pet-stage{padding:0 22px 4px;}
-  #stat-bars{padding:0 22px;gap:4px;}
   #xp-row{padding:4px 22px 0;}
-  #items-row{padding:3px 22px 0;}
-  #chain-bar{padding:3px 22px 1px;}
   #focus-label{padding:6px 22px 2px;}
-  #task-input{min-height:38px;max-height:120px;}
   .btn{min-height:46px;}
   #actions{padding:6px 22px 4px;}
-  #bottom-bar{padding:4px 22px;padding-bottom:max(10px,env(safe-area-inset-bottom));}
+  #bottom-cta{padding:6px 22px;padding-bottom:max(10px,env(safe-area-inset-bottom));}
+  #btn-add-cta{min-height:50px;}
 }
 @media(max-height:680px){
   #pet-bg{height:100px;}
   #pet-svg-wrap{width:84px;height:84px;}
-  #stat-bars{gap:3px;}
-  .stat-track{height:5px;}
-  #items-row{padding:2px 22px 0;}
-  #chain-bar{padding:2px 22px 0;}
   #focus-label{padding:4px 22px 1px;}
   #task-card{min-height:72px;padding:12px 16px;}
   .btn{min-height:40px;font-size:14px;}
   #actions{padding:4px 22px 2px;gap:7px;}
   #swipe-hint{display:none;}
+  #btn-add-cta{min-height:46px;font-size:15px;}
 }
 </style>
 </head>
@@ -398,7 +421,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 <div class="screen hidden" id="screen-main">
   <div id="topbar">
     <div id="pet-name-label">—</div>
-    <div id="level-badge">LV 1</div>
+    <button id="level-badge" aria-label="Show progress">LV 1</button>
     <button id="btn-menu" aria-label="Menu">
       <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="18" height="2" rx="1" fill="currentColor"/>
@@ -412,35 +435,75 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <div id="pet-svg-wrap" class="idle"></div>
     </div>
   </div>
-  <div id="stat-bars">
-    <div class="stat-row"><span class="stat-icon">🍖</span><div class="stat-track"><div class="stat-fill hunger" id="bar-hunger" style="width:70%"></div></div></div>
-    <div class="stat-row"><span class="stat-icon">😄</span><div class="stat-track"><div class="stat-fill happy" id="bar-happy" style="width:60%"></div></div></div>
-    <div class="stat-row"><span class="stat-icon">⚡</span><div class="stat-track"><div class="stat-fill energy" id="bar-energy" style="width:80%"></div></div></div>
-  </div>
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
-  <div id="items-row"></div>
-  <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
   <div id="focus-label">current task</div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
-    <div id="swipe-hint">swipe right → done &nbsp;·&nbsp; swipe left → skip</div>
+    <div id="task-card-meta">
+      <button id="btn-card-remind" class="card-chip" title="Set reminder">📅 Remind</button>
+      <div id="swipe-hint">swipe → done · ← skip</div>
+    </div>
   </div>
   <div id="actions">
     <button class="btn" id="btn-done" disabled>✓ Done</button>
     <button class="btn" id="btn-tasks-quick" disabled><svg width="16" height="13" viewBox="0 0 16 13" fill="none"><rect y="0" width="16" height="2" rx="1" fill="currentColor"/><rect y="5.5" width="11" height="2" rx="1" fill="currentColor"/><rect y="11" width="13" height="2" rx="1" fill="currentColor"/></svg></button>
     <button class="btn" id="btn-skip" disabled>⏭ Skip</button>
   </div>
-  <div id="bottom-bar">
-    <div class="add-fmt-bar" id="main-fmt-bar">
-      <button class="add-fmt-btn" data-fmt="cb">☑ checkbox</button>
-      <button class="add-fmt-btn" data-fmt="bullet">• bullet</button>
-      <button class="add-fmt-btn" data-fmt="num">1. list</button>
-    </div>
-    <div id="add-row">
-      <div id="task-input" class="block-editor"></div>
-      <button class="btn" id="btn-add">+</button>
-    </div>
+  <div id="bottom-cta">
+    <button id="btn-add-cta">+ Add task</button>
+  </div>
+</div>
+<!-- Progress drawer: opened by tapping the level badge -->
+<div class="overlay" id="progress-overlay"></div>
+<div class="drawer" id="progress-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">📊 Progress</div>
+  <div id="progress-xp-section">
+    <div class="prog-section-label">XP</div>
+    <div id="prog-xp-track"><div id="prog-xp-fill" style="width:0%"></div></div>
+    <div id="prog-xp-meta"><span id="prog-xp-cur">0 XP</span><span id="prog-xp-next">→ Lv 2</span></div>
+  </div>
+  <div class="prog-section-label" style="margin-top:18px;">Stats</div>
+  <div id="stat-bars">
+    <div class="stat-row"><span class="stat-icon">🍖</span><div class="stat-track"><div class="stat-fill hunger" id="bar-hunger" style="width:70%"></div></div></div>
+    <div class="stat-row"><span class="stat-icon">😄</span><div class="stat-track"><div class="stat-fill happy" id="bar-happy" style="width:60%"></div></div></div>
+    <div class="stat-row"><span class="stat-icon">⚡</span><div class="stat-track"><div class="stat-fill energy" id="bar-energy" style="width:80%"></div></div></div>
+  </div>
+  <div class="prog-section-label" style="margin-top:18px;">Today's chain</div>
+  <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
+  <div class="prog-section-label" style="margin-top:18px;">Items</div>
+  <div id="items-row"></div>
+</div>
+<!-- Welcome / first-run intro card -->
+<div class="overlay" id="intro-overlay"></div>
+<div id="intro-card">
+  <div class="intro-emoji">🎉</div>
+  <div class="intro-title">Welcome to OneBuddy!</div>
+  <div class="intro-body">
+    <div class="intro-step"><span>1</span><div><strong>Add a task</strong> using the orange + Add task button.</div></div>
+    <div class="intro-step"><span>2</span><div>Tap <strong>✓ Done</strong> (or swipe right) when you finish — your pet gains XP and stats fill.</div></div>
+    <div class="intro-step"><span>3</span><div>Tap your <strong>level badge</strong> to see XP, stats, items, and today's chain.</div></div>
+    <div class="intro-step"><span>4</span><div>Tap a task to open it — you can <strong>share, copy, or schedule a 📅 reminder</strong>.</div></div>
+  </div>
+  <button class="ob-btn" id="intro-got-it">Got it! Let's go →</button>
+</div>
+<!-- Reminder picker: top-level overlay so it can be opened from card chip or modal -->
+<div class="overlay" id="reminder-overlay"></div>
+<div id="reminder-sheet">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title" style="font-size:18px;">📅 Remind me</div>
+  <div class="rp-label">Date &amp; time</div>
+  <input type="datetime-local" id="rp-when"/>
+  <div class="rp-presets">
+    <button class="rp-preset" data-preset="1h">In 1 hour</button>
+    <button class="rp-preset" data-preset="3h">In 3 hours</button>
+    <button class="rp-preset" data-preset="tom9">Tomorrow 9am</button>
+    <button class="rp-preset" data-preset="mon9">Next Mon 9am</button>
+  </div>
+  <div class="rp-actions">
+    <button class="rp-btn rp-cancel" id="rp-cancel">Cancel</button>
+    <button class="rp-btn rp-confirm" id="rp-confirm">📅 Add to calendar</button>
   </div>
 </div>
 <div class="overlay" id="wardrobe-overlay"></div>
@@ -504,7 +567,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v25</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v26</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -516,14 +579,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="drawer-title" id="tasks-drawer-title">All Tasks</div>
   <div id="tasks-list"></div>
   <div id="drawer-add-row">
-    <div class="add-fmt-bar" id="drawer-fmt-bar" style="margin-bottom:8px;">
+    <div class="add-fmt-bar" id="main-fmt-bar">
       <button class="add-fmt-btn" data-fmt="cb">☑ checkbox</button>
       <button class="add-fmt-btn" data-fmt="bullet">• bullet</button>
       <button class="add-fmt-btn" data-fmt="num">1. list</button>
     </div>
-    <div style="display:flex;gap:8px;">
-      <input id="drawer-task-input" type="text" placeholder="Add a task…" autocomplete="off" autocorrect="off" spellcheck="false"/>
-      <button id="drawer-add-btn">+</button>
+    <div id="add-row">
+      <div id="task-input" class="block-editor"></div>
+      <button class="btn" id="btn-add">+</button>
     </div>
   </div>
 </div>
@@ -549,20 +612,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <button id="note-modal-copy" title="Copy whole note" aria-label="Copy">📋</button>
     <button id="note-modal-share" title="Share whole note" aria-label="Share">📤</button>
     <button id="note-modal-close" aria-label="Close">✕</button>
-  </div>
-  <div id="reminder-picker" hidden>
-    <div class="rp-label">Remind me at</div>
-    <input type="datetime-local" id="rp-when"/>
-    <div class="rp-presets">
-      <button class="rp-preset" data-preset="1h">In 1 hour</button>
-      <button class="rp-preset" data-preset="3h">In 3 hours</button>
-      <button class="rp-preset" data-preset="tom9">Tomorrow 9am</button>
-      <button class="rp-preset" data-preset="mon9">Next Mon 9am</button>
-    </div>
-    <div class="rp-actions">
-      <button class="rp-btn rp-cancel" id="rp-cancel">Cancel</button>
-      <button class="rp-btn rp-confirm" id="rp-confirm">📅 Add to calendar</button>
-    </div>
   </div>
   <div id="note-modal-toolbar">
     <button class="fmt-btn" id="fmt-cb">☑ checkbox</button>
@@ -1354,6 +1403,7 @@ function showMain(){
   document.getElementById('screen-onboard').classList.add('hidden');
   document.getElementById('screen-main').classList.remove('hidden');
   renderPet();render();$wrap.classList.add('idle');
+  maybeShowIntro();
 }
 
 // ═══ BLOCK-BASED DATA MODEL ══════════════════════════════════
@@ -1475,15 +1525,17 @@ function applyReminderPreset(name){
   document.getElementById('rp-when').value=_toLocalInputValue(target);
 }
 function openReminderPicker(){
-  const blocks=currentNoteBlocks();if(!blocks.length)return;
-  const picker=document.getElementById('reminder-picker');
+  const blocks=currentNoteBlocks();if(!blocks.length){showFeedback('Add a task first');return;}
   const inp=document.getElementById('rp-when');
-  // Pre-fill default: 1 hour from now, rounded to next 15 min
   const def=_roundUpQuarter(new Date(Date.now()+60*60*1000));
   inp.value=_toLocalInputValue(def);
-  picker.hidden=false;
+  document.getElementById('reminder-overlay').classList.add('show');
+  document.getElementById('reminder-sheet').classList.add('open');
 }
-function closeReminderPicker(){document.getElementById('reminder-picker').hidden=true;}
+function closeReminderPicker(){
+  document.getElementById('reminder-overlay').classList.remove('show');
+  document.getElementById('reminder-sheet').classList.remove('open');
+}
 function confirmReminder(){
   const inp=document.getElementById('rp-when');
   if(!inp.value){showFeedback('Pick a date & time');return;}
@@ -1794,6 +1846,9 @@ function render(){
   document.getElementById('xp-cur').textContent=p.xp+' XP';
   const nu=nextUnlock();
   document.getElementById('next-unlock').textContent=nu?`${nu.emoji} ${nu.name} @ ${nu.xp} XP`:'All unlocked! 🎉';
+  // Mirror to Progress drawer
+  const $pf=document.getElementById('prog-xp-fill'),$pc=document.getElementById('prog-xp-cur'),$pn=document.getElementById('prog-xp-next');
+  if($pf){$pf.style.width=pct+'%';$pc.textContent=p.xp+' XP · Lv '+lvl;$pn.textContent=`→ Lv ${lvl+1} @ ${xpForLevel(lvl+1)} XP`;}
   renderItems();renderChain();renderTask();
 }
 function setBar(id,v){
@@ -2116,18 +2171,6 @@ function toggleMainFmt(type){
   if(row)paintMainIndicator(row,_mainFocused);
   updateMainFmtBar();
 }
-// Simple prefix toggle for drawer input
-function toggleDrawerFmt(type){
-  const inp=document.getElementById('drawer-task-input');
-  const next=_fmtDrawer===type?null:type;
-  const oldPfx=_fmtDrawer?FMT_PREFIX[_fmtDrawer]:'';
-  const newPfx=next?FMT_PREFIX[next]:'';
-  let v=inp.value;
-  if(oldPfx&&v.startsWith(oldPfx))v=v.slice(oldPfx.length);
-  inp.value=newPfx+v;
-  document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.classList.toggle('active',b.dataset.fmt===next));
-  _fmtDrawer=next;inp.focus();
-}
 // ═══ ACTIONS ═════════════════════════════════════════════════
 function addTask(){
   const blocks=_mainBlocks
@@ -2256,18 +2299,19 @@ const menuDr=makeDrawer('btn-menu','menu-drawer','menu-overlay',()=>{
   document.getElementById('ms-streak').textContent=S.dayStreak;
   document.getElementById('ms-total').textContent=S.totalDone;
 });
+// Open the tasks drawer with the WYSIWYG editor focused so the user can
+// start typing immediately (1-tap add task flow).
+function openAddTaskFlow(){
+  renderTasksDrawer();
+  tasksDr.open();
+  setTimeout(()=>{
+    const firstBe=document.querySelector('#task-input .be-input');
+    firstBe?.focus();
+  },350);// after drawer slide-in animation
+}
 const tasksDr=makeDrawer(null,'tasks-drawer','tasks-overlay',renderTasksDrawer);
 document.getElementById('btn-open-tasks').addEventListener('click',()=>{menuDr.close();renderTasksDrawer();tasksDr.open();});
-function drawerAddTask(){
-  const inp=document.getElementById('drawer-task-input');
-  const val=inp.value.trim();if(!val)return;
-  S.tasks.push(textToBlocks(val));S.chainTotal++;
-  // keep drawer format active for batch-adding
-  inp.value=_fmtDrawer?FMT_PREFIX[_fmtDrawer]:'';
-  save();render();renderTasksDrawer();
-}
-document.getElementById('drawer-add-btn').addEventListener('click',drawerAddTask);
-document.getElementById('drawer-task-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawerAddTask();}});
+document.getElementById('btn-add-cta').addEventListener('click',openAddTaskFlow);
 document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>{
   // Prevent the button from stealing focus from the textarea — keeps the
   // mobile keyboard up and prevents the page from jumping.
@@ -2275,9 +2319,34 @@ document.querySelectorAll('#main-fmt-bar .add-fmt-btn').forEach(b=>{
   b.addEventListener('mousedown',e=>e.preventDefault());
   b.addEventListener('click',e=>{e.preventDefault();toggleMainFmt(b.dataset.fmt);});
 });
-document.querySelectorAll('#drawer-fmt-bar .add-fmt-btn').forEach(b=>b.addEventListener('click',()=>toggleDrawerFmt(b.dataset.fmt)));
 // Initial render of the WYSIWYG block editor
 renderMainBlocks();
+// Progress drawer (tap level badge)
+const progressDr=makeDrawer(null,'progress-drawer','progress-overlay',()=>{render();});
+document.getElementById('level-badge').addEventListener('click',()=>progressDr.open());
+// Reminder picker as a top-level bottom-sheet (opened from note modal or task-card chip)
+(function wireReminderSheet(){
+  const overlay=document.getElementById('reminder-overlay');
+  const sheet=document.getElementById('reminder-sheet');
+  overlay.addEventListener('click',closeReminderPicker);
+})();
+document.getElementById('btn-card-remind').addEventListener('click',()=>{
+  if(!S.tasks.length){showFeedback('Add a task first');return;}
+  openReminderPicker();
+});
+// Welcome / intro card — show once on first reach to main screen
+function maybeShowIntro(){
+  if(localStorage.getItem('ot_seen_intro')==='1')return;
+  setTimeout(()=>{
+    document.getElementById('intro-overlay').classList.add('show');
+    document.getElementById('intro-card').classList.add('show');
+  },400);
+}
+document.getElementById('intro-got-it').addEventListener('click',()=>{
+  document.getElementById('intro-overlay').classList.remove('show');
+  document.getElementById('intro-card').classList.remove('show');
+  localStorage.setItem('ot_seen_intro','1');
+});
 document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
   const p=AP();
@@ -2306,9 +2375,8 @@ card.addEventListener('touchend',e=>{card.classList.remove('pressing');if(!tA)re
 card.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientY-ty2)>20){tA=false;card.classList.remove('pressing');}},{passive:true});
 document.getElementById('task-card').addEventListener('click',e=>{
   if(!S.tasks.length){
-    // Empty CTA: focus the main input so the keyboard pops up
-    const firstBe=document.querySelector('#task-input .be-input');
-    firstBe?.focus();
+    // Empty CTA: open the tasks drawer with the editor focused
+    openAddTaskFlow();
     return;
   }
   if(e.target.closest('.note-cb-row'))return; // checkbox row handles toggle
