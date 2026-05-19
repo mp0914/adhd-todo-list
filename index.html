@@ -77,11 +77,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #pet-svg-wrap.idle{animation:petIdle 2.8s ease-in-out infinite;}
 #pet-svg-wrap.bounce{animation:petBounce 0.45s ease;}
 #pet-svg-wrap.celebrate{animation:petCelebrate 0.65s ease;}
-#mood-label{position:absolute;top:8px;right:10px;background:rgba(15,14,23,0.72);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:11px;color:var(--dim);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
-#stat-bars{width:100%;padding:0 22px;display:flex;flex-direction:column;gap:7px;flex-shrink:0;position:relative;z-index:10;}
-.stat-row{display:flex;align-items:center;gap:9px;}
-.stat-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0;}
-.stat-track{flex:1;height:7px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+#level-badge .mood{margin-right:4px;}
+#stat-bars{width:100%;padding:0 22px;display:flex;flex-direction:row;gap:8px;flex-shrink:0;position:relative;z-index:10;}
+.stat-row{flex:1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 12px 5px 10px;min-height:26px;}
+.stat-icon{font-size:11px;text-align:center;flex-shrink:0;line-height:1;}
+.stat-track{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
 .stat-fill{height:100%;border-radius:100px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1);}
 .stat-fill.hunger{background:linear-gradient(90deg,#ff8906,#f25f4c);}
 .stat-fill.happy{background:linear-gradient(90deg,#5ece8b,#4fc3f7);}
@@ -95,7 +95,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #items-row::-webkit-scrollbar{display:none;}
 .item-chip{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 11px;font-size:11px;color:var(--dim);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:border-color 0.15s,color 0.15s;-webkit-tap-highlight-color:transparent;}
 .item-chip.equipped{border-color:var(--accent);color:var(--accent);}
-.item-chip.locked{opacity:0.35;cursor:default;}
+.item-chip.locked{opacity:0.45;cursor:default;}
+.item-chip.more-chip{color:var(--accent);background:rgba(255,137,6,0.08);border-color:rgba(255,137,6,0.3);cursor:pointer;}
+/* Wardrobe drawer grid */
+.wardrobe-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px;}
+.wd-card{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;transition:border-color 0.15s,background 0.15s;-webkit-tap-highlight-color:transparent;text-align:left;}
+.wd-card.equipped{border-color:var(--accent);background:rgba(255,137,6,0.08);}
+.wd-card.locked{opacity:0.5;cursor:default;}
+.wd-emoji{font-size:22px;flex-shrink:0;width:32px;text-align:center;}
+.wd-info{flex:1;min-width:0;}
+.wd-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wd-card.locked .wd-name{color:var(--dim);}
+.wd-meta{font-size:10px;color:var(--muted);margin-top:1px;}
+.wd-card.equipped .wd-meta{color:var(--accent);}
 #chain-bar{padding:6px 22px 2px;display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:10;}
 #chain-dots{display:flex;gap:4px;flex-wrap:wrap;}
 .chain-dot{width:8px;height:8px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);transition:background 0.35s,border-color 0.35s;flex-shrink:0;}
@@ -104,9 +116,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #focus-label{flex-shrink:0;padding:10px 22px 6px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;position:relative;z-index:10;}
 #task-area{flex:1;display:flex;flex-direction:column;padding:0 22px;position:relative;z-index:10;min-height:0;overflow:hidden;}
 #task-count{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.05em;}
-#task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;min-height:88px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s;cursor:pointer;overflow:hidden;}
+#task-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;min-height:88px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:var(--shadow);transition:transform 0.15s,box-shadow 0.15s,border-color 0.2s,background 0.2s;cursor:pointer;overflow:hidden;}
 #task-card.pressing{transform:scale(0.97);box-shadow:0 4px 16px rgba(0,0,0,0.4);}
 #task-card.rich-card{align-items:flex-start;justify-content:flex-start;text-align:left;}
+#task-card.empty-cta{background:transparent;border-style:dashed;border-color:rgba(255,137,6,0.35);box-shadow:none;}
+#task-card.empty-cta:active{background:rgba(255,137,6,0.06);border-color:var(--accent);}
+#task-card.empty-cta #task-text{color:var(--accent);font-weight:600;font-size:16px;font-style:normal;display:flex;align-items:center;gap:8px;}
+#task-card.empty-cta #task-text::before{content:'+';font-size:24px;font-weight:700;line-height:1;}
 #task-text{font-family:'DM Sans',sans-serif;font-size:clamp(17px,5vw,22px);font-weight:700;color:var(--text);line-height:1.4;letter-spacing:0.01em;overflow-y:auto;max-height:130px;width:100%;-webkit-overflow-scrolling:touch;}
 #task-text.empty{color:var(--muted);font-size:15px;font-weight:400;font-style:italic;letter-spacing:0;}
 #task-text.rich{font-size:14px;font-weight:400;letter-spacing:0;line-height:1.55;}
@@ -186,6 +202,11 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #btn-skip{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
 #bottom-bar{display:flex;flex-direction:column;gap:5px;padding:6px 22px;padding-bottom:max(14px,env(safe-area-inset-bottom));flex-shrink:0;position:relative;z-index:10;}
 .add-fmt-bar{display:flex;gap:5px;}
+/* Main format bar is hidden by default; appears only when the task input
+   has focus (CSS :focus-within keeps it visible while format buttons are
+   tapped because we preventDefault their pointerdown). */
+#main-fmt-bar{display:none;}
+#bottom-bar:focus-within #main-fmt-bar{display:flex;}
 .add-fmt-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-xs);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 10px;min-height:36px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,border-color 0.15s;user-select:none;text-align:center;display:flex;align-items:center;justify-content:center;}
 .add-fmt-btn.active{background:rgba(255,137,6,0.12);border-color:rgba(255,137,6,0.35);color:var(--accent);}
 .add-fmt-btn:active{opacity:0.6;}
@@ -292,7 +313,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .done-time{font-size:10px;color:var(--muted);opacity:0.45;margin-top:2px;}
 .done-undo{background:none;border:1px solid var(--border);border-radius:6px;color:var(--dim);font-size:11px;font-weight:600;padding:5px 9px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
 .done-undo:active{opacity:0.5;}
-#btn-tasks-quick{flex:0 0 46px;background:var(--surface2);border:1px solid var(--border);color:var(--dim);}
+#btn-tasks-quick{flex:0 0 44px;min-height:44px;background:transparent;border:1px solid var(--border);color:var(--muted);}
+#btn-tasks-quick:active{background:var(--surface2);}
 .ps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;}
 .ps-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--surface);border:2px solid var(--border);border-radius:var(--r-sm);padding:8px 4px 8px;cursor:pointer;transition:border-color 0.18s,background 0.18s;-webkit-tap-highlight-color:transparent;overflow:hidden;}
 .ps-card:active{transform:scale(0.93);}
@@ -388,7 +410,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="pet-stage">
     <div id="pet-bg">
       <div id="pet-svg-wrap" class="idle"></div>
-      <div id="mood-label">😊 happy</div>
     </div>
   </div>
   <div id="stat-bars">
@@ -421,6 +442,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
       <button class="btn" id="btn-add">+</button>
     </div>
   </div>
+</div>
+<div class="overlay" id="wardrobe-overlay"></div>
+<div class="drawer" id="wardrobe-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">Wardrobe</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Tap items to equip · max 3 active · scenes auto-swap</div>
+  <div class="wardrobe-grid" id="wardrobe-grid"></div>
 </div>
 <div class="overlay" id="pets-overlay"></div>
 <div class="drawer" id="pets-drawer">
@@ -476,7 +504,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v24</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v25</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -1755,9 +1783,9 @@ function render(){
   if(!S.activePet)return;
   const p=AP();
   document.getElementById('pet-name-label').textContent=p.name||'Pet';
-  document.getElementById('level-badge').textContent='LV '+getLevel(p.xp);
   const mood=getMood();
-  document.getElementById('mood-label').textContent={happy:'😊 happy',excited:'🔥 excited',neutral:'😐 chill',sleepy:'😴 resting'}[mood]||'😊 happy';
+  const moodEmoji={happy:'😊',excited:'🔥',neutral:'😐',sleepy:'😴'}[mood]||'😊';
+  document.getElementById('level-badge').innerHTML=`<span class="mood">${moodEmoji}</span>LV ${getLevel(p.xp)}`;
   renderPet(mood);
   setBar('hunger',p.hunger);setBar('happy',p.happy);setBar('energy',p.energy);
   const lvl=getLevel(p.xp);
@@ -1775,24 +1803,57 @@ function renderItems(){
   const row=document.getElementById('items-row');row.innerHTML='';
   const p=AP();
   const eq=Array.isArray(p.equipped)?p.equipped:[];
-  ITEMS.forEach(item=>{
-    if(item.petOnly&&item.petOnly!==S.activePet)return;
+  const visible=ITEMS.filter(item=>!item.petOnly||item.petOnly===S.activePet);
+  const equipped=visible.filter(item=>eq.includes(item.id));
+  // Next 2 unlocks the user hasn't reached yet (closest to current XP)
+  const lockedClosest=visible
+    .filter(item=>!p.unlocked.includes(item.id))
+    .sort((a,b)=>a.xp-b.xp)
+    .slice(0,2);
+  const shownIds=new Set([...equipped,...lockedClosest].map(i=>i.id));
+  const remaining=visible.length-shownIds.size;
+  function mkChip(item){
     const ul=p.unlocked.includes(item.id),isEq=eq.includes(item.id);
     const chip=document.createElement('div');
     chip.className='item-chip'+(isEq?' equipped':'')+(ul?'':' locked');
     chip.textContent=ul?`${item.emoji} ${item.name}${isEq?' ✓':''}`:`${item.emoji} ${item.name} · ${item.xp}xp`;
-    if(ul)chip.addEventListener('click',()=>{
-      const cur=Array.isArray(p.equipped)?[...p.equipped]:[];
-      if(isEq){p.equipped=cur.filter(id=>id!==item.id);}
-      else if(item.sceneBg){
-        // scene bg items auto-replace each other (no slot cost)
-        p.equipped=[...cur.filter(id=>!ITEMS.find(x=>x.id===id&&x.sceneBg)),item.id];
-      }else if(cur.filter(id=>!ITEMS.find(x=>x.id===id&&x.sceneBg)).length<3){
-        p.equipped=[...cur,item.id];
-      }else{showFeedback('Max 3 items equipped!');return;}
-      save();renderItems();renderPet(getMood());
-    });
-    row.appendChild(chip);
+    if(ul)chip.addEventListener('click',()=>equipItem(item));
+    return chip;
+  }
+  equipped.forEach(item=>row.appendChild(mkChip(item)));
+  lockedClosest.forEach(item=>row.appendChild(mkChip(item)));
+  if(remaining>0){
+    const more=document.createElement('div');
+    more.className='item-chip more-chip';
+    more.textContent=`👕 Wardrobe · ${visible.length}`;
+    more.addEventListener('click',()=>wardrobeDr.open());
+    row.appendChild(more);
+  }
+}
+function equipItem(item){
+  const p=AP();
+  const cur=Array.isArray(p.equipped)?[...p.equipped]:[];
+  const isEq=cur.includes(item.id);
+  if(isEq){p.equipped=cur.filter(id=>id!==item.id);}
+  else if(item.sceneBg){
+    p.equipped=[...cur.filter(id=>!ITEMS.find(x=>x.id===id&&x.sceneBg)),item.id];
+  }else if(cur.filter(id=>!ITEMS.find(x=>x.id===id&&x.sceneBg)).length<3){
+    p.equipped=[...cur,item.id];
+  }else{showFeedback('Max 3 items equipped!');return;}
+  save();renderItems();renderPet(getMood());
+  if(document.getElementById('wardrobe-drawer').classList.contains('open'))renderWardrobe();
+}
+function renderWardrobe(){
+  const grid=document.getElementById('wardrobe-grid');grid.innerHTML='';
+  const p=AP();const eq=Array.isArray(p.equipped)?p.equipped:[];
+  ITEMS.forEach(item=>{
+    if(item.petOnly&&item.petOnly!==S.activePet)return;
+    const ul=p.unlocked.includes(item.id),isEq=eq.includes(item.id);
+    const card=document.createElement('div');
+    card.className='wd-card'+(isEq?' equipped':'')+(ul?'':' locked');
+    card.innerHTML=`<div class="wd-emoji">${item.emoji}</div><div class="wd-info"><div class="wd-name">${item.name}</div><div class="wd-meta">${isEq?'✓ Equipped':ul?'Tap to equip':`Unlocks @ ${item.xp} XP`}</div></div>`;
+    if(ul)card.addEventListener('click',()=>equipItem(item));
+    grid.appendChild(card);
   });
 }
 function renderChain(){
@@ -1810,9 +1871,11 @@ function renderTask(){
     $d=document.getElementById('btn-done'),$s=document.getElementById('btn-skip'),
     $q=document.getElementById('btn-tasks-quick');
   if(!tasks.length){
-    $t.textContent='Add a task below ↓';$t.className='empty';
-    $card.classList.remove('rich-card');$d.disabled=true;$s.disabled=true;$q.disabled=false;$c.textContent='';return;
+    $t.textContent='Tap to add a task';$t.className='empty';
+    $card.classList.remove('rich-card');$card.classList.add('empty-cta');
+    $d.disabled=true;$s.disabled=true;$q.disabled=false;$c.textContent='';return;
   }
+  $card.classList.remove('empty-cta');
   if(S.idx>=tasks.length)S.idx=0;
   let blocks=tasks[S.idx];
   // Safety: if task is still a raw string (migration missed it), convert now
@@ -2242,7 +2305,12 @@ card.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty2=e.touches[0].
 card.addEventListener('touchend',e=>{card.classList.remove('pressing');if(!tA)return;tA=false;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty2;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){if(dx>0)completeTask();else skipTask();incSwipeCount();}},{passive:true});
 card.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientY-ty2)>20){tA=false;card.classList.remove('pressing');}},{passive:true});
 document.getElementById('task-card').addEventListener('click',e=>{
-  if(!S.tasks.length)return;
+  if(!S.tasks.length){
+    // Empty CTA: focus the main input so the keyboard pops up
+    const firstBe=document.querySelector('#task-input .be-input');
+    firstBe?.focus();
+    return;
+  }
   if(e.target.closest('.note-cb-row'))return; // checkbox row handles toggle
   openNoteModal();
 });
@@ -2309,6 +2377,7 @@ document.getElementById('btn-add').addEventListener('click',addTask);
 })();
 
 // ═══ PET SWITCHER ════════════════════════════════════════════
+const wardrobeDr=makeDrawer(null,'wardrobe-drawer','wardrobe-overlay',renderWardrobe);
 const petsDr=makeDrawer(null,'pets-drawer','pets-overlay',renderPetsSwitcher);
 document.getElementById('btn-open-pets').addEventListener('click',()=>{menuDr.close();renderPetsSwitcher();petsDr.open();});
 let adoptTarget=null;
