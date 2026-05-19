@@ -95,21 +95,27 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #next-unlock{color:var(--purple);}
 #items-row{padding:7px 22px 0;display:flex;gap:7px;overflow-x:auto;flex-shrink:0;position:relative;z-index:10;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
 #items-row::-webkit-scrollbar{display:none;}
-.item-chip{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 11px;font-size:11px;color:var(--dim);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:border-color 0.15s,color 0.15s;-webkit-tap-highlight-color:transparent;}
-.item-chip.equipped{border-color:var(--accent);color:var(--accent);}
-.item-chip.locked{opacity:0.45;cursor:default;}
-.item-chip.more-chip{color:var(--accent);background:rgba(255,137,6,0.08);border-color:rgba(255,137,6,0.3);cursor:pointer;}
-/* Wardrobe drawer grid */
-.wardrobe-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px;}
-.wd-card{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;transition:border-color 0.15s,background 0.15s;-webkit-tap-highlight-color:transparent;text-align:left;}
-.wd-card.equipped{border-color:var(--accent);background:rgba(255,137,6,0.08);}
-.wd-card.locked{opacity:0.5;cursor:default;}
-.wd-emoji{font-size:22px;flex-shrink:0;width:32px;text-align:center;}
-.wd-info{flex:1;min-width:0;}
-.wd-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.wd-card.locked .wd-name{color:var(--dim);}
-.wd-meta{font-size:10px;color:var(--muted);margin-top:1px;}
-.wd-card.equipped .wd-meta{color:var(--accent);}
+/* Items grid — lives inside Progress drawer, grouped by status */
+.items-section{display:flex;flex-direction:column;gap:8px;}
+.items-section + .items-section{margin-top:18px;}
+.items-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+.items-section-head .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;}
+.items-section-head .count{font-size:10px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;}
+.items-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.it-card{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:9px 11px;cursor:pointer;transition:border-color 0.15s,background 0.15s,transform 0.1s;-webkit-tap-highlight-color:transparent;text-align:left;font-family:'DM Sans',sans-serif;color:var(--text);min-height:54px;}
+.it-card:active{transform:scale(0.97);}
+.it-card.equipped{border-color:var(--accent);background:rgba(255,137,6,0.1);box-shadow:0 0 0 2px rgba(255,137,6,0.08);}
+.it-card.locked{opacity:0.55;cursor:default;background:var(--surface);}
+.it-card.locked:active{transform:none;}
+.it-emoji{font-size:24px;line-height:1;flex-shrink:0;width:30px;text-align:center;}
+.it-card.locked .it-emoji{filter:grayscale(0.7);}
+.it-info{flex:1;min-width:0;}
+.it-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.it-card.locked .it-name{color:var(--dim);font-weight:500;}
+.it-meta{font-size:10px;color:var(--muted);margin-top:1px;display:flex;align-items:center;gap:3px;}
+.it-card.equipped .it-meta{color:var(--accent);font-weight:600;}
+.it-card.locked .it-meta{color:var(--muted);}
+.items-empty{font-size:12px;color:var(--muted);font-style:italic;padding:4px 0;}
 #chain-bar{padding:6px 22px 2px;display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:10;}
 #chain-dots{display:flex;gap:4px;flex-wrap:wrap;}
 .chain-dot{width:8px;height:8px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);transition:background 0.35s,border-color 0.35s;flex-shrink:0;}
@@ -215,7 +221,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #progress-xp-section #prog-xp-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:100px;transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1);}
 #prog-xp-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--dim);font-weight:600;}
 #prog-xp-meta #prog-xp-next{color:var(--purple);}
-#progress-drawer #items-row{padding:0;margin-top:0;display:flex;flex-wrap:wrap;gap:6px;overflow:visible;}
+#progress-drawer #items-row{padding:0;margin-top:0;display:flex;flex-direction:column;overflow:visible;}
 #progress-drawer #chain-bar{padding:0;}
 #progress-drawer #stat-bars{padding:0;}
 /* Reminder sheet — bottom-sheet style independent of note modal */
@@ -472,8 +478,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   </div>
   <div class="prog-section-label" style="margin-top:18px;">Today's chain</div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div class="prog-section-label" style="margin-top:18px;">Items</div>
-  <div id="items-row"></div>
+  <div style="margin-top:18px;" id="items-row"></div>
 </div>
 <!-- Welcome / first-run intro card -->
 <div class="overlay" id="intro-overlay"></div>
@@ -505,13 +510,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
     <button class="rp-btn rp-cancel" id="rp-cancel">Cancel</button>
     <button class="rp-btn rp-confirm" id="rp-confirm">📅 Add to calendar</button>
   </div>
-</div>
-<div class="overlay" id="wardrobe-overlay"></div>
-<div class="drawer" id="wardrobe-drawer">
-  <div class="drawer-handle"></div>
-  <div class="drawer-title">Wardrobe</div>
-  <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Tap items to equip · max 3 active · scenes auto-swap</div>
-  <div class="wardrobe-grid" id="wardrobe-grid"></div>
 </div>
 <div class="overlay" id="pets-overlay"></div>
 <div class="drawer" id="pets-drawer">
@@ -567,7 +565,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v26</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v27</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -1860,30 +1858,39 @@ function renderItems(){
   const eq=Array.isArray(p.equipped)?p.equipped:[];
   const visible=ITEMS.filter(item=>!item.petOnly||item.petOnly===S.activePet);
   const equipped=visible.filter(item=>eq.includes(item.id));
-  // Next 2 unlocks the user hasn't reached yet (closest to current XP)
-  const lockedClosest=visible
-    .filter(item=>!p.unlocked.includes(item.id))
-    .sort((a,b)=>a.xp-b.xp)
-    .slice(0,2);
-  const shownIds=new Set([...equipped,...lockedClosest].map(i=>i.id));
-  const remaining=visible.length-shownIds.size;
-  function mkChip(item){
+  const available=visible.filter(item=>p.unlocked.includes(item.id)&&!eq.includes(item.id));
+  const locked=visible.filter(item=>!p.unlocked.includes(item.id)).sort((a,b)=>a.xp-b.xp);
+  function makeCard(item){
     const ul=p.unlocked.includes(item.id),isEq=eq.includes(item.id);
-    const chip=document.createElement('div');
-    chip.className='item-chip'+(isEq?' equipped':'')+(ul?'':' locked');
-    chip.textContent=ul?`${item.emoji} ${item.name}${isEq?' ✓':''}`:`${item.emoji} ${item.name} · ${item.xp}xp`;
-    if(ul)chip.addEventListener('click',()=>equipItem(item));
-    return chip;
+    const card=document.createElement('button');
+    card.type='button';
+    card.className='it-card'+(isEq?' equipped':'')+(ul?'':' locked');
+    const meta=isEq?'✓ Tap to remove':ul?(item.sceneBg?'Background scene':'Tap to equip'):`Unlocks @ ${item.xp} XP`;
+    card.innerHTML=`<div class="it-emoji">${item.emoji}</div><div class="it-info"><div class="it-name">${item.name}</div><div class="it-meta">${meta}</div></div>`;
+    if(ul)card.addEventListener('click',()=>equipItem(item));
+    return card;
   }
-  equipped.forEach(item=>row.appendChild(mkChip(item)));
-  lockedClosest.forEach(item=>row.appendChild(mkChip(item)));
-  if(remaining>0){
-    const more=document.createElement('div');
-    more.className='item-chip more-chip';
-    more.textContent=`👕 Wardrobe · ${visible.length}`;
-    more.addEventListener('click',()=>wardrobeDr.open());
-    row.appendChild(more);
+  function addSection(label,items,emptyText){
+    const section=document.createElement('div');
+    section.className='items-section';
+    const head=document.createElement('div');
+    head.className='items-section-head';
+    head.innerHTML=`<span class="lbl">${label}</span><span class="count">${items.length}</span>`;
+    section.appendChild(head);
+    if(!items.length){
+      const empty=document.createElement('div');
+      empty.className='items-empty';empty.textContent=emptyText;
+      section.appendChild(empty);
+    }else{
+      const grid=document.createElement('div');grid.className='items-grid';
+      items.forEach(item=>grid.appendChild(makeCard(item)));
+      section.appendChild(grid);
+    }
+    row.appendChild(section);
   }
+  addSection('Equipped',equipped,'Nothing equipped yet — pick from below');
+  if(available.length)addSection('Available',available,'');
+  if(locked.length)addSection('Locked',locked,'');
 }
 function equipItem(item){
   const p=AP();
@@ -1896,20 +1903,6 @@ function equipItem(item){
     p.equipped=[...cur,item.id];
   }else{showFeedback('Max 3 items equipped!');return;}
   save();renderItems();renderPet(getMood());
-  if(document.getElementById('wardrobe-drawer').classList.contains('open'))renderWardrobe();
-}
-function renderWardrobe(){
-  const grid=document.getElementById('wardrobe-grid');grid.innerHTML='';
-  const p=AP();const eq=Array.isArray(p.equipped)?p.equipped:[];
-  ITEMS.forEach(item=>{
-    if(item.petOnly&&item.petOnly!==S.activePet)return;
-    const ul=p.unlocked.includes(item.id),isEq=eq.includes(item.id);
-    const card=document.createElement('div');
-    card.className='wd-card'+(isEq?' equipped':'')+(ul?'':' locked');
-    card.innerHTML=`<div class="wd-emoji">${item.emoji}</div><div class="wd-info"><div class="wd-name">${item.name}</div><div class="wd-meta">${isEq?'✓ Equipped':ul?'Tap to equip':`Unlocks @ ${item.xp} XP`}</div></div>`;
-    if(ul)card.addEventListener('click',()=>equipItem(item));
-    grid.appendChild(card);
-  });
 }
 function renderChain(){
   const dots=document.getElementById('chain-dots');dots.innerHTML='';
@@ -2445,7 +2438,6 @@ document.getElementById('btn-add').addEventListener('click',addTask);
 })();
 
 // ═══ PET SWITCHER ════════════════════════════════════════════
-const wardrobeDr=makeDrawer(null,'wardrobe-drawer','wardrobe-overlay',renderWardrobe);
 const petsDr=makeDrawer(null,'pets-drawer','pets-overlay',renderPetsSwitcher);
 document.getElementById('btn-open-pets').addEventListener('click',()=>{menuDr.close();renderPetsSwitcher();petsDr.open();});
 let adoptTarget=null;
