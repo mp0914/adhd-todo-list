@@ -1,4 +1,4 @@
-const CACHE = 'onebuddy-v18';
+const CACHE = 'onebuddy-v19';
 
 self.addEventListener('install', e => {
   // Skip waiting immediately so new SW takes over without requiring tab close

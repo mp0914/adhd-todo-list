@@ -150,8 +150,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #note-modal.open{transform:translateX(-50%) translateY(0);}
 #note-modal-head{display:flex;align-items:center;gap:10px;padding:14px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
 #note-modal-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;flex:1;}
-#note-modal-close,#note-modal-copy,#note-modal-share{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--dim);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:background 0.15s,border-color 0.15s;}
-#note-modal-copy:active,#note-modal-share:active,#note-modal-close:active{background:var(--surface2);border-color:rgba(255,255,255,0.16);}
+#note-modal-close,#note-modal-copy,#note-modal-share,#note-modal-remind{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--dim);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-tap-highlight-color:transparent;flex-shrink:0;transition:background 0.15s,border-color 0.15s;}
+#note-modal-copy:active,#note-modal-share:active,#note-modal-close:active,#note-modal-remind:active{background:var(--surface2);border-color:rgba(255,255,255,0.16);}
+#note-modal-remind.has-reminder{border-color:var(--accent);color:var(--accent);}
+/* Reminder picker */
+#reminder-picker{padding:14px 20px 16px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:10px;flex-shrink:0;}
+.rp-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;}
+#rp-when{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;caret-color:var(--accent);color-scheme:dark;}
+#rp-when:focus{border-color:var(--accent);}
+.rp-presets{display:flex;gap:6px;flex-wrap:wrap;}
+.rp-preset{flex:1;min-width:100px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:8px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s,border-color 0.15s,color 0.15s;}
+.rp-preset:active{background:rgba(255,137,6,0.12);border-color:var(--accent);color:var(--accent);}
+.rp-actions{display:flex;gap:8px;}
+.rp-btn{flex:1;min-height:46px;border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity 0.12s;}
+.rp-btn:active{opacity:0.6;}
+.rp-cancel{background:var(--surface2);color:var(--dim);border:1px solid var(--border);}
+.rp-confirm{background:var(--accent);color:#1a0a00;font-weight:700;}
+/* Reminder badge on task card */
+.reminder-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,137,6,0.12);border:1px solid rgba(255,137,6,0.3);color:var(--accent);font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;margin-top:8px;font-family:'DM Sans',sans-serif;}
 #note-modal-toolbar{display:flex;gap:6px;padding:8px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .fmt-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .fmt-btn:active{opacity:0.6;}
@@ -384,7 +400,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div id="xp-row"><div id="xp-track"><div id="xp-fill" style="width:0%"></div></div><div id="xp-label"><span id="xp-cur">0 XP</span><span id="next-unlock">🎩 hat @ 50 XP</span></div></div>
   <div id="items-row"></div>
   <div id="chain-bar"><div id="chain-dots"></div><div id="chain-label">today's chain</div></div>
-  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v22</span></div>
+  <div id="focus-label">current task <span id="app-ver" style="float:right;background:#ff8906;color:#1a0a00;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0">v23</span></div>
   <div id="task-area">
     <div id="task-count"></div>
     <div id="task-card"><div id="task-text" class="empty">Add a task below ↓</div></div>
@@ -501,9 +517,24 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 <div id="note-modal">
   <div id="note-modal-head">
     <span id="note-modal-label">current task</span>
+    <button id="note-modal-remind" title="Set reminder / add to calendar" aria-label="Remind">📅</button>
     <button id="note-modal-copy" title="Copy whole note" aria-label="Copy">📋</button>
     <button id="note-modal-share" title="Share whole note" aria-label="Share">📤</button>
     <button id="note-modal-close" aria-label="Close">✕</button>
+  </div>
+  <div id="reminder-picker" hidden>
+    <div class="rp-label">Remind me at</div>
+    <input type="datetime-local" id="rp-when"/>
+    <div class="rp-presets">
+      <button class="rp-preset" data-preset="1h">In 1 hour</button>
+      <button class="rp-preset" data-preset="3h">In 3 hours</button>
+      <button class="rp-preset" data-preset="tom9">Tomorrow 9am</button>
+      <button class="rp-preset" data-preset="mon9">Next Mon 9am</button>
+    </div>
+    <div class="rp-actions">
+      <button class="rp-btn rp-cancel" id="rp-cancel">Cancel</button>
+      <button class="rp-btn rp-confirm" id="rp-confirm">📅 Add to calendar</button>
+    </div>
   </div>
   <div id="note-modal-toolbar">
     <button class="fmt-btn" id="fmt-cb">☑ checkbox</button>
@@ -1363,6 +1394,80 @@ async function shareCurrentNote(){
   // Fallback: copy to clipboard so the user can paste anywhere
   await copyCurrentNote();
 }
+// ─── REMINDERS / CALENDAR (.ics export) ─────────────────────────
+function _icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function _icsDateUtc(d){
+  // YYYYMMDDTHHMMSSZ
+  const p=n=>String(n).padStart(2,'0');
+  return d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+'T'+p(d.getUTCHours())+p(d.getUTCMinutes())+p(d.getUTCSeconds())+'Z';
+}
+function buildIcs(title,description,startDate){
+  const end=new Date(startDate.getTime()+15*60*1000);
+  const uid=Date.now()+'-'+Math.random().toString(36).slice(2)+'@onebuddy';
+  const lines=[
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//OneBuddy//Task Reminder//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    'UID:'+uid,
+    'DTSTAMP:'+_icsDateUtc(new Date()),
+    'DTSTART:'+_icsDateUtc(startDate),
+    'DTEND:'+_icsDateUtc(end),
+    'SUMMARY:'+_icsEscape(title),
+    'DESCRIPTION:'+_icsEscape(description),
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+_icsEscape(title),'TRIGGER:-PT0M','END:VALARM',
+    'END:VEVENT','END:VCALENDAR',''
+  ];
+  return lines.join('\r\n');
+}
+function downloadIcs(title,description,startDate){
+  const ics=buildIcs(title,description,startDate);
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const fname=(title.slice(0,40).replace(/[^a-z0-9]+/gi,'-').replace(/^-+|-+$/g,'')||'task')+'.ics';
+  const a=document.createElement('a');
+  a.href=url;a.download=fname;a.rel='noopener';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},500);
+}
+// Local-time datetime string for <input type="datetime-local">
+function _toLocalInputValue(d){
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+function _roundUpQuarter(d){
+  const m=d.getMinutes();const add=15-(m%15||15);
+  const n=new Date(d.getTime());n.setMinutes(m+add,0,0);return n;
+}
+function applyReminderPreset(name){
+  const now=new Date();let target;
+  if(name==='1h'){target=new Date(now.getTime()+60*60*1000);}
+  else if(name==='3h'){target=new Date(now.getTime()+3*60*60*1000);}
+  else if(name==='tom9'){target=new Date(now);target.setDate(now.getDate()+1);target.setHours(9,0,0,0);}
+  else if(name==='mon9'){target=new Date(now);const d=target.getDay();const add=((1-d+7)%7)||7;target.setDate(target.getDate()+add);target.setHours(9,0,0,0);}
+  else return;
+  document.getElementById('rp-when').value=_toLocalInputValue(target);
+}
+function openReminderPicker(){
+  const blocks=currentNoteBlocks();if(!blocks.length)return;
+  const picker=document.getElementById('reminder-picker');
+  const inp=document.getElementById('rp-when');
+  // Pre-fill default: 1 hour from now, rounded to next 15 min
+  const def=_roundUpQuarter(new Date(Date.now()+60*60*1000));
+  inp.value=_toLocalInputValue(def);
+  picker.hidden=false;
+}
+function closeReminderPicker(){document.getElementById('reminder-picker').hidden=true;}
+function confirmReminder(){
+  const inp=document.getElementById('rp-when');
+  if(!inp.value){showFeedback('Pick a date & time');return;}
+  const when=new Date(inp.value);
+  if(isNaN(when.getTime())){showFeedback('Invalid date');return;}
+  const blocks=currentNoteBlocks();
+  const title=(blocks[0]?.v||'Task reminder').slice(0,80);
+  const desc=blocksToShareText(blocks);
+  downloadIcs(title,desc,when);
+  closeReminderPicker();
+  showFeedback('📅 Opening calendar…');
+}
 // renderBlocks: returns a DocumentFragment — direct DOM build so handlers attach immediately
 let _cbUid=0;
 function renderBlocks(blocks,taskIdx){
@@ -1500,6 +1605,7 @@ function closeNoteModal(){
   document.getElementById('note-overlay').classList.remove('show');
   document.getElementById('note-modal').classList.remove('open');
   _nmEdit=false;
+  closeReminderPicker();
 }
 function renderNoteModal(){
   document.getElementById('note-modal-label').textContent=`task ${S.idx+1} of ${S.tasks.length}`;
@@ -2134,6 +2240,10 @@ document.getElementById('task-card').addEventListener('click',e=>{
 document.getElementById('note-modal-close').addEventListener('click',closeNoteModal);
 document.getElementById('note-modal-copy').addEventListener('click',copyCurrentNote);
 document.getElementById('note-modal-share').addEventListener('click',shareCurrentNote);
+document.getElementById('note-modal-remind').addEventListener('click',openReminderPicker);
+document.getElementById('rp-cancel').addEventListener('click',closeReminderPicker);
+document.getElementById('rp-confirm').addEventListener('click',confirmReminder);
+document.querySelectorAll('.rp-preset').forEach(b=>b.addEventListener('click',()=>applyReminderPreset(b.dataset.preset)));
 document.getElementById('note-overlay').addEventListener('click',closeNoteModal);
 document.getElementById('btn-done').addEventListener('click',completeTask);
 document.getElementById('btn-skip').addEventListener('click',skipTask);
