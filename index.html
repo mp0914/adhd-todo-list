@@ -565,7 +565,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v28</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v29</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -1153,7 +1153,7 @@ function getItemSVG(itemId) {
 const ITEMS=[
   {id:'hat',       name:'Tiny Hat',     emoji:'🎩',xp:75},
   {id:'glasses',   name:'Sunglasses',   emoji:'😎',xp:225},
-  {id:'cape',      name:'Cape',         emoji:'🦸',xp:450},
+  {id:'cape',      name:'Cape',         emoji:'🦸',xp:450,behind:true},
   {id:'bone',      name:'Chew Bone',    emoji:'🦴',xp:600,petOnly:'dog'},
   {id:'yarn',      name:'Yarn Ball',    emoji:'🧶',xp:600,petOnly:'cat'},
   {id:'flame',     name:'Dragon Flame', emoji:'🔥',xp:600,petOnly:'dragon'},
@@ -1167,7 +1167,7 @@ const ITEMS=[
   {id:'rainbow',   name:'Rainbow Bg',   emoji:'🌈',xp:1500,sceneBg:true},
   {id:'sword',     name:'Sword',        emoji:'🗡️', xp:2000},
   {id:'nightsky',  name:'Night Sky',    emoji:'🌙', xp:2500,sceneBg:true},
-  {id:'wings',     name:'Wings',        emoji:'🪽', xp:2750},
+  {id:'wings',     name:'Wings',        emoji:'🪽', xp:2750,behind:true},
   {id:'halo',      name:'Halo',         emoji:'😇', xp:3500},
   {id:'forest',    name:'Forest',       emoji:'🌲', xp:4000,sceneBg:true},
   {id:'aura',      name:'Aura',         emoji:'🌟', xp:4500},
@@ -1315,10 +1315,14 @@ function renderPet(mood){
   if(!S.activePet)return;
   const p=AP(),m=mood||getMood();
   const stage=getEvolutionStage(p.xp);
-  $wrap.innerHTML=PETS[S.activePet].getSVG(m);
   const eq=Array.isArray(p.equipped)?p.equipped:[];
-  eq.filter(id=>!SCENE_IDS.includes(id)).forEach(id=>{$wrap.innerHTML+=getItemSVG(id);});
-  $wrap.innerHTML+=getEvolutionOverlay(stage);
+  const nonScene=eq.filter(id=>!SCENE_IDS.includes(id));
+  const isBehind=id=>{const it=ITEMS.find(x=>x.id===id);return!!(it&&it.behind);};
+  const behindHtml=nonScene.filter(isBehind).map(getItemSVG).join('');
+  const frontHtml=nonScene.filter(id=>!isBehind(id)).map(getItemSVG).join('');
+  // DOM order = z-order for absolutely-positioned siblings: behind items
+  // first, then pet, then in-front items, then evolution glow on top.
+  $wrap.innerHTML=behindHtml+PETS[S.activePet].getSVG(m)+frontHtml+getEvolutionOverlay(stage);
   $wrap.style.filter=stage===3
     ?'drop-shadow(0 0 10px rgba(179,136,255,0.85)) drop-shadow(0 0 5px rgba(255,137,6,0.4))'
     :stage===2?'drop-shadow(0 0 8px rgba(255,215,0,0.75))':'';
