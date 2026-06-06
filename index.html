@@ -565,7 +565,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v30</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v31</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -2207,16 +2207,31 @@ function completeTask(){
   if(!S.tasks.length)return;
   const p=AP();
   const prevLvl=getLevel(p.xp),prevXP=p.xp;
-  let gained=10;
-  if(S.dayStreak>0)gained+=Math.min(S.dayStreak*2,20);
-  if(S.doneToday>0&&(S.doneToday+1)%5===0)gained+=25;
+  // ─── XP CALCULATION ────────────────────────────────────────
+  // Bigger baseline + more milestone bonuses for ADHD-friendly
+  // dopamine. Numbers feel more rewarding than the old 10/25/50.
+  let gained=15;                                       // base (was 10)
+  if(S.dayStreak>0)gained+=Math.min(S.dayStreak*2,30); // streak (cap 30, was 20)
+  const isFirstToday=S.doneToday===0;
+  const is5th       =S.doneToday>0&&(S.doneToday+1)%5===0;
+  const is10th      =(S.doneToday+1)===10;
+  if(isFirstToday)gained+=15;                          // first task of the day
+  if(is5th)       gained+=35;                          // every 5th (was 25)
+  if(is10th)      gained+=50;                          // double-digit milestone
   p.xp+=gained;S.doneToday++;S.totalDone++;S.chainDone++;
   p.hunger=Math.min(100,p.hunger+15);p.happy=Math.min(100,p.happy+10);
   p.energy=Math.min(100,p.energy+10);
-  if(p.energy>=100){p.energy=0;p.xp+=30;showFeedback('⚡ Energy Surge! +30 XP!');}
+  // ─── BIG CELEBRATIONS (separate bonus XP, override message) ─
+  let bonusMsg=null;
+  if(p.energy>=100){p.energy=0;p.xp+=40;bonusMsg='⚡ Energy Surge! +40 XP';}
   const isFullChain=S.chainDone>=S.chainTotal&&S.chainTotal>0;
-  if(isFullChain){p.xp+=50;p.happy=Math.min(100,p.happy+20);launchConfetti();showFeedback('⛓ Chain complete! +50 xp!');}
-  else showFeedback(gained);
+  if(isFullChain){p.xp+=100;p.happy=Math.min(100,p.happy+20);launchConfetti();bonusMsg='⛓ Chain complete! +100 XP';}
+  // Show the most exciting feedback: chain > energy > 10th > 5th > first > normal
+  if(bonusMsg)        showFeedback(bonusMsg);
+  else if(is10th)     showFeedback(`💯 10 done! Big day! +${gained} XP`);
+  else if(is5th)      showFeedback(`🎯 5-in-a-row! +${gained} XP`);
+  else if(isFirstToday)showFeedback(`☀️ First win of the day! +${gained} XP`);
+  else                showFeedback(gained);
   checkUnlocks(prevXP);
   if(getLevel(p.xp)>prevLvl)showLevelUp(getLevel(p.xp));
   const prevStage=getEvolutionStage(prevXP),newStage=getEvolutionStage(p.xp);
@@ -2256,7 +2271,7 @@ function animTransition(type,cb){
   card.classList.add(out);
   setTimeout(()=>{card.classList.remove(out);cb();if(S.tasks.length){card.classList.add(inp);setTimeout(()=>card.classList.remove(inp),280);}},230);
 }
-const MSGS=['Nice.','Keep going.','Boom!','Yes!','Crushed it.','One down.','💪','Momentum.'];
+const MSGS=['Nice work! 💪','Keep going! 🔥','Boom!','Yes! ✨','Crushed it! ⚡','One down 🎯','Momentum! 🌟','Locked in 🔒','Smooth.','Another one.','You got this.','Streaky!','Let’s go!','That counts!'];
 let fbT;
 function showFeedback(val){
   const el=document.getElementById('feedback');
