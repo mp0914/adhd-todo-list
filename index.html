@@ -565,7 +565,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v29</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v30</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -1868,6 +1868,9 @@ function render(){
   const $pf=document.getElementById('prog-xp-fill'),$pc=document.getElementById('prog-xp-cur'),$pn=document.getElementById('prog-xp-next');
   if($pf){$pf.style.width=pct+'%';$pc.textContent=p.xp+' XP · Lv '+lvl;$pn.textContent=`→ Lv ${lvl+1} @ ${xpForLevel(lvl+1)} XP`;}
   renderItems();renderChain();renderTask();
+  // If the tasks drawer is open, keep its list in sync (otherwise the user
+  // sees a stale list after adding/completing/skipping a task without closing).
+  if(document.getElementById('tasks-drawer').classList.contains('open'))renderTasksDrawer();
 }
 function setBar(id,v){
   document.getElementById('bar-'+id).style.width=Math.max(0,Math.min(100,v))+'%';
