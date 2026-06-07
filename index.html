@@ -49,6 +49,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #screen-main{background:var(--bg);justify-content:flex-start;}
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px 8px;position:relative;z-index:10;flex-shrink:0;gap:10px;}
 #pet-name-label{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:700;color:var(--accent);letter-spacing:0.2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+#streak-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 11px 6px 9px;font-size:12px;color:var(--dim);font-weight:700;flex-shrink:0;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;transition:background 0.15s,color 0.15s,transform 0.12s;}
+#streak-badge .flame{font-size:13px;filter:grayscale(0.6);transition:filter 0.3s;}
+#streak-badge:active{transform:scale(0.95);background:var(--surface);}
+#streak-badge.tier-low{color:var(--accent);}
+#streak-badge.tier-low .flame{filter:none;}
+#streak-badge.tier-mid{color:#ff7043;border-color:rgba(255,112,67,0.35);}
+#streak-badge.tier-mid .flame{filter:drop-shadow(0 0 4px rgba(255,112,67,0.5));}
+#streak-badge.tier-high{color:#ff5722;border-color:rgba(255,87,34,0.55);background:rgba(255,87,34,0.08);}
+#streak-badge.tier-high .flame{filter:drop-shadow(0 0 6px rgba(255,87,34,0.7));animation:flameFlicker 2.4s ease-in-out infinite;}
+@keyframes flameFlicker{0%,100%{transform:scale(1);}50%{transform:scale(1.12) translateY(-1px);}}
 #level-badge{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:12px;color:var(--purple);font-weight:700;letter-spacing:0.04em;flex-shrink:0;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent;transition:background 0.15s,border-color 0.15s;}
 #level-badge:active{background:var(--surface);border-color:rgba(179,136,255,0.4);}
 #level-badge::after{content:'›';margin-left:5px;opacity:0.5;font-weight:400;}
@@ -79,6 +89,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 #pet-svg-wrap.idle{animation:petIdle 2.8s ease-in-out infinite;}
 #pet-svg-wrap.bounce{animation:petBounce 0.45s ease;}
 #pet-svg-wrap.celebrate{animation:petCelebrate 0.65s ease;}
+#pet-svg-wrap.micro-tilt-l{animation:petMicroTiltL 0.7s ease;}
+#pet-svg-wrap.micro-tilt-r{animation:petMicroTiltR 0.7s ease;}
+#pet-svg-wrap.micro-bob{animation:petMicroBob 0.6s ease;}
+@keyframes petMicroTiltL{0%,100%{transform:rotate(0);}50%{transform:rotate(-7deg);}}
+@keyframes petMicroTiltR{0%,100%{transform:rotate(0);}50%{transform:rotate(7deg);}}
+@keyframes petMicroBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+/* Floating thought bubbles — random emoji rises from the pet */
+.thought-bubble{position:absolute;top:20%;left:50%;font-size:20px;pointer-events:none;opacity:0;animation:thoughtFloat 2.6s ease-out forwards;z-index:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));}
+@keyframes thoughtFloat{0%{opacity:0;transform:translate(-50%,8px) scale(0.5);}15%{opacity:1;transform:translate(-50%,0) scale(1.1);}30%{transform:translate(-50%,-6px) scale(1);}80%{opacity:1;transform:translate(-50%,-40px) scale(1);}100%{opacity:0;transform:translate(-50%,-60px) scale(0.85);}}
 #level-badge .mood{margin-right:4px;}
 #stat-bars{width:100%;padding:0 22px;display:flex;flex-direction:row;gap:8px;flex-shrink:0;position:relative;z-index:10;}
 .stat-row{flex:1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 12px 5px 10px;min-height:26px;}
@@ -219,6 +238,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 .prog-section-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:8px;}
 #progress-xp-section #prog-xp-track{height:10px;background:var(--surface2);border-radius:100px;overflow:hidden;}
 #progress-xp-section #prog-xp-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:100px;transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1);}
+/* Streak card inside Progress drawer */
+#prog-streak-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.prog-streak-big{display:flex;align-items:baseline;gap:8px;}
+.prog-streak-big .flame{font-size:24px;line-height:1;filter:drop-shadow(0 0 6px rgba(255,87,34,0.5));}
+.prog-streak-big #prog-streak-num{font-family:'DM Sans',sans-serif;font-size:36px;font-weight:700;color:var(--accent);line-height:1;font-variant-numeric:tabular-nums;}
+.prog-streak-unit{font-size:13px;color:var(--dim);font-weight:600;margin-left:-2px;}
+.prog-streak-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:10px;border-top:1px solid var(--border);}
+.prog-streak-meta>div{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.prog-streak-k{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;}
+.prog-streak-meta span:last-child{font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
 #prog-xp-meta{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--dim);font-weight:600;}
 #prog-xp-meta #prog-xp-next{color:var(--purple);}
 #progress-drawer #items-row{padding:0;margin-top:0;display:flex;flex-direction:column;overflow:visible;}
@@ -427,6 +456,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 <div class="screen hidden" id="screen-main">
   <div id="topbar">
     <div id="pet-name-label">—</div>
+    <button id="streak-badge" aria-label="Show streak details" title="Streak"><span class="flame">🔥</span><span class="num">0</span></button>
     <button id="level-badge" aria-label="Show progress">LV 1</button>
     <button id="btn-menu" aria-label="Menu">
       <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -465,7 +495,18 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 <div class="drawer" id="progress-drawer">
   <div class="drawer-handle"></div>
   <div class="drawer-title">📊 Progress</div>
-  <div id="progress-xp-section">
+  <div id="progress-streak-section">
+    <div class="prog-section-label">Streak</div>
+    <div id="prog-streak-card">
+      <div class="prog-streak-big"><span class="flame">🔥</span><span id="prog-streak-num">0</span><span class="prog-streak-unit">days</span></div>
+      <div class="prog-streak-meta">
+        <div><span class="prog-streak-k">Best</span><span id="prog-streak-best">0</span></div>
+        <div><span class="prog-streak-k">🛡 Freezes</span><span id="prog-streak-freezes">0</span></div>
+        <div><span class="prog-streak-k">Next</span><span id="prog-streak-next">3 days</span></div>
+      </div>
+    </div>
+  </div>
+  <div id="progress-xp-section" style="margin-top:18px;">
     <div class="prog-section-label">XP</div>
     <div id="prog-xp-track"><div id="prog-xp-fill" style="width:0%"></div></div>
     <div id="prog-xp-meta"><span id="prog-xp-cur">0 XP</span><span id="prog-xp-next">→ Lv 2</span></div>
@@ -565,7 +606,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
   <div class="menu-section" id="ios-install-section" style="display:none">
     <div class="menu-label">App</div>
     <div class="ios-install-tip">📲 &nbsp;To install: tap the <strong style="color:var(--text)">Share</strong> button in Safari, then <strong style="color:var(--text)">Add to Home Screen</strong></div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v31</span></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:0.05em;">OneBuddy <span id="app-ver">v32</span></div>
   </div>
   <div class="menu-section">
     <div class="menu-label">Account</div>
@@ -1182,7 +1223,7 @@ const ITEMS=[
 const TOKEN_KEY='ot_token';
 let authToken=localStorage.getItem(TOKEN_KEY);
 const today=new Date().toDateString();
-let S={pets:{},activePet:null,tasks:[],completed:[],idx:0,dayStreak:0,lastDate:'',
+let S={pets:{},activePet:null,tasks:[],completed:[],idx:0,dayStreak:0,streakFreezes:0,bestStreak:0,lastDate:'',
   doneToday:0,totalDone:0,chainDone:0,chainTotal:0};
 let _taskTab='active';
 // AP() returns a mutable reference to the active pet's data object
@@ -1226,10 +1267,48 @@ function applyState(data){
     return textToBlocks(String(t));
   });
 }
+// ─── STREAK MILESTONES ────────────────────────────────────────
+// Variable schedule of rewards — XP gifts plus streak-freezes earned
+// every 7 days. Milestones fire on every reach (so re-earning after a
+// break re-rewards). Bigger reward = bigger celebration.
+const STREAK_MILESTONES=[
+  {days:3,   xp:50,   freeze:false, msg:'🔥 3-day streak! +50 XP'},
+  {days:7,   xp:100,  freeze:true,  msg:'🔥 Week-strong! +100 XP + 🛡 Freeze'},
+  {days:14,  xp:200,  freeze:true,  msg:'🔥 2-week streak! +200 XP + 🛡 Freeze'},
+  {days:21,  xp:300,  freeze:true,  msg:'🔥 3-week streak! +300 XP + 🛡 Freeze'},
+  {days:30,  xp:500,  freeze:false, msg:'🔥 30-day champion! +500 XP'},
+  {days:60,  xp:1000, freeze:false, msg:'🔥 60-day legend! +1000 XP'},
+  {days:100, xp:2000, freeze:false, msg:'🔥 100-DAY MYTHIC! +2000 XP'},
+];
+function maybeFireStreakMilestone(){
+  const ms=STREAK_MILESTONES.find(m=>m.days===S.dayStreak);
+  if(!ms)return;
+  if(S.activePet&&S.pets[S.activePet]){S.pets[S.activePet].xp+=ms.xp;}
+  if(ms.freeze){S.streakFreezes=Math.min((S.streakFreezes||0)+1,2);}
+  // Defer to after first render so the toast is visible.
+  setTimeout(()=>{showFeedback(ms.msg);if(S.dayStreak>=7)launchConfetti();},800);
+}
 function applyDayRollover(){
   if(S.lastDate&&S.lastDate!==today){
+    const wasActiveYesterday=S.doneToday>0;     // remembers prior day's activity
     const diff=(new Date(today)-new Date(S.lastDate))/864e5;
-    S.dayStreak=diff<=1.5?S.dayStreak+1:0;
+    const gap=Math.round(diff);
+    if(wasActiveYesterday&&gap<=1){
+      // Normal consecutive day with completed tasks yesterday
+      S.dayStreak++;
+      if(S.dayStreak>(S.bestStreak||0))S.bestStreak=S.dayStreak;
+      maybeFireStreakMilestone();
+    }else if(wasActiveYesterday&&(S.streakFreezes||0)>0&&gap===2){
+      // Missed exactly 1 day — auto-consume a freeze, preserve and grow streak
+      S.streakFreezes--;
+      S.dayStreak++;
+      if(S.dayStreak>(S.bestStreak||0))S.bestStreak=S.dayStreak;
+      setTimeout(()=>showFeedback(`🛡 Freeze saved your ${S.dayStreak}-day streak!`),500);
+      maybeFireStreakMilestone();
+    }else{
+      // Streak broken — too long a gap or no activity to begin with
+      S.dayStreak=0;
+    }
     S.doneToday=0;S.chainDone=0;S.chainTotal=0;
     Object.values(S.pets).forEach(p=>{p.energy=0;});
   }
@@ -1856,6 +1935,17 @@ function render(){
   const mood=getMood();
   const moodEmoji={happy:'😊',excited:'🔥',neutral:'😐',sleepy:'😴'}[mood]||'😊';
   document.getElementById('level-badge').innerHTML=`<span class="mood">${moodEmoji}</span>LV ${getLevel(p.xp)}`;
+  // Streak badge: tier visual based on dayStreak (greyed if 0, lit at 3+, glowing at 14+)
+  const sb=document.getElementById('streak-badge');
+  if(sb){
+    const sd=S.dayStreak||0;
+    sb.querySelector('.num').textContent=sd;
+    sb.classList.remove('tier-low','tier-mid','tier-high');
+    if(sd>=14)sb.classList.add('tier-high');
+    else if(sd>=7)sb.classList.add('tier-mid');
+    else if(sd>=3)sb.classList.add('tier-low');
+    sb.title=`${sd}-day streak · ${S.streakFreezes||0} freezes · best ${S.bestStreak||sd}`;
+  }
   renderPet(mood);
   setBar('hunger',p.hunger);setBar('happy',p.happy);setBar('energy',p.energy);
   const lvl=getLevel(p.xp);
@@ -1867,6 +1957,15 @@ function render(){
   // Mirror to Progress drawer
   const $pf=document.getElementById('prog-xp-fill'),$pc=document.getElementById('prog-xp-cur'),$pn=document.getElementById('prog-xp-next');
   if($pf){$pf.style.width=pct+'%';$pc.textContent=p.xp+' XP · Lv '+lvl;$pn.textContent=`→ Lv ${lvl+1} @ ${xpForLevel(lvl+1)} XP`;}
+  // Streak card in progress drawer
+  const $ps=document.getElementById('prog-streak-num');
+  if($ps){
+    $ps.textContent=S.dayStreak||0;
+    document.getElementById('prog-streak-best').textContent=Math.max(S.bestStreak||0,S.dayStreak||0);
+    document.getElementById('prog-streak-freezes').textContent=S.streakFreezes||0;
+    const nextMs=STREAK_MILESTONES.find(m=>m.days>(S.dayStreak||0));
+    document.getElementById('prog-streak-next').textContent=nextMs?`${nextMs.days-(S.dayStreak||0)} days`:'maxed';
+  }
   renderItems();renderChain();renderTask();
   // If the tasks drawer is open, keep its list in sync (otherwise the user
   // sees a stale list after adding/completing/skipping a task without closing).
@@ -2355,6 +2454,7 @@ renderMainBlocks();
 // Progress drawer (tap level badge)
 const progressDr=makeDrawer(null,'progress-drawer','progress-overlay',()=>{render();});
 document.getElementById('level-badge').addEventListener('click',()=>progressDr.open());
+document.getElementById('streak-badge').addEventListener('click',()=>progressDr.open());
 // Reminder picker as a top-level bottom-sheet (opened from note modal or task-card chip)
 (function wireReminderSheet(){
   const overlay=document.getElementById('reminder-overlay');
@@ -2382,7 +2482,7 @@ document.getElementById('btn-reset-stats').addEventListener('click',()=>{
   if(!confirm('Reset active pet XP, stats, and items? Tasks are kept.'))return;
   const p=AP();
   p.xp=0;p.hunger=70;p.happy=60;p.energy=0;p.unlocked=[];p.equipped=[];
-  S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.chainDone=0;S.chainTotal=0;
+  S.doneToday=0;S.totalDone=0;S.dayStreak=0;S.streakFreezes=0;S.bestStreak=0;S.chainDone=0;S.chainTotal=0;
   save();render();menuDr.close();
 });
 document.getElementById('btn-reset-all').addEventListener('click',()=>{if(!confirm('Clear everything?'))return;const t=localStorage.getItem(TOKEN_KEY);localStorage.clear();if(t)localStorage.setItem(TOKEN_KEY,t);location.reload();});
@@ -2399,6 +2499,39 @@ function incSwipeCount(){
   const n=parseInt(localStorage.getItem('ot_swipes')||'0',10)||0;
   if(n>=3){const h=document.getElementById('swipe-hint');if(h)h.style.display='none';}
 })();
+// ─── PET IDLE LIFE — thought bubbles + random micro-actions ──────
+// Pet feels alive: random emoji bubble rises every ~8-20s,
+// and a small tilt/bob plays occasionally. Pauses when tab hidden
+// so we don't burn cycles in the background.
+const THOUGHTS_BY_MOOD={
+  happy:['💖','✨','🌟','😊','💫','🎵','😌'],
+  excited:['🔥','⚡','💫','🎉','🌟','💥','🚀'],
+  neutral:['💭','…','🤔','💤','📖'],
+  sleepy:['😴','💤','💭','🌙','⭐']
+};
+function spawnThoughtBubble(){
+  if(!S.activePet||document.hidden)return;
+  if(document.getElementById('screen-main').classList.contains('hidden'))return;
+  const stage=document.getElementById('pet-bg');if(!stage)return;
+  const pool=THOUGHTS_BY_MOOD[getMood()]||THOUGHTS_BY_MOOD.happy;
+  const emoji=pool[Math.floor(Math.random()*pool.length)];
+  const bubble=document.createElement('div');
+  bubble.className='thought-bubble';bubble.textContent=emoji;
+  stage.appendChild(bubble);
+  setTimeout(()=>bubble.remove(),2700);
+}
+function playPetMicroAction(){
+  if(!S.activePet||document.hidden)return;
+  if(document.getElementById('screen-main').classList.contains('hidden'))return;
+  const actions=['micro-tilt-l','micro-tilt-r','micro-bob'];
+  const action=actions[Math.floor(Math.random()*actions.length)];
+  $wrap.classList.remove('idle');
+  $wrap.classList.add(action);
+  setTimeout(()=>{$wrap.classList.remove(action);$wrap.classList.add('idle');},700);
+}
+// Periodic ticks. Random chance on each interval so the timing feels alive.
+setInterval(()=>{if(Math.random()<0.35)spawnThoughtBubble();},9000);
+setInterval(()=>{if(Math.random()<0.4)playPetMicroAction();},22000);
 let tx=0,ty2=0,tA=false;
 const card=document.getElementById('task-card');
 card.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty2=e.touches[0].clientY;tA=true;card.classList.add('pressing');},{passive:true});
